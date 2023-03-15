@@ -31,8 +31,8 @@ class Reviews(models.Model):
         verbose_name_plural = 'Отзывы'
         constraints = (
             models.UniqueConstraint(
-                fields=['author', 'title'],
-                name='unique_author_title'
+                fields=['author', 'title', 'text'],
+                name='unique_text_title'
             ),
         )
 
@@ -66,6 +66,12 @@ class Comments(models.Model):
         default_related_name = 'comments'
         verbose_name = 'Комментарии'
         verbose_name_plural = 'Комментарии'
+        constraints = (
+            models.UniqueConstraint(
+                fields=['author', 'reviews', 'text'],
+                name='unique_text_reviews'
+            ),
+        )
 
     def __str__(self) -> str:
         return self.text[:SLICE_STR_SYMBOLS]
