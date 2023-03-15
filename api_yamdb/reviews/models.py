@@ -1,6 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from api_yamdb.settings import SLICE_STR_SYMBOLS
+
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -82,10 +85,12 @@ class GenreTitle(models.Model):
     genre = models.ForeignKey(
         Genre,
         on_delete=models.SET_NULL,
+        null=True,
     )
     title = models.ForeignKey(
         Title,
         on_delete=models.SET_NULL,
+        null=True,
     )
 
     class Meta:
@@ -93,9 +98,9 @@ class GenreTitle(models.Model):
 
     def __str__(self) -> str:
         return f'{self.genre}-{self.title}'
-        
-        
- class Reviews(models.Model):
+
+
+class Reviews(models.Model):
     """Отзывы."""
     text = models.TextField(
         verbose_name='Текст отзыва',
@@ -167,4 +172,3 @@ class Comments(models.Model):
 
     def __str__(self) -> str:
         return self.text[:SLICE_STR_SYMBOLS]
-

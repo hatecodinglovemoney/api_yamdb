@@ -31,7 +31,9 @@ class TitleSerializer(serializers.ModelSerializer):
         if value < year:
             raise serializers.ValidationError(ERROR_YEAR_FROM_FUTURE)
         return value
-        class ReviewsSerializer(serializers.ModelSerializer):
+
+
+class ReviewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reviews
         field = '__all__'
