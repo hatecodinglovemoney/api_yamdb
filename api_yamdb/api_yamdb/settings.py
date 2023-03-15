@@ -95,6 +95,9 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Constants
+
+SLICE_STR_SYMBOLS = 15
 
 # Static files (CSS, JavaScript, Images)
 
