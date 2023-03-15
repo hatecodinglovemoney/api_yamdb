@@ -2,7 +2,7 @@ import datetime as dt
 
 from rest_framework import serializers
 
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title, Reviews, Comments
 
 ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть больше текущего!'
 
@@ -31,3 +31,13 @@ class TitleSerializer(serializers.ModelSerializer):
         if value < year:
             raise serializers.ValidationError(ERROR_YEAR_FROM_FUTURE)
         return value
+        class ReviewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reviews
+        field = '__all__'
+
+
+class CommentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comments
+        field = '__all__'
