@@ -40,7 +40,7 @@ class Reviews(models.Model):
         return self.text[:SLICE_STR_SYMBOLS]
 
 
-class Comment(models.Model):
+class Comments(models.Model):
     """Комментарии"""
     text = models.TextField(
         verbose_name='Текст комментария',
