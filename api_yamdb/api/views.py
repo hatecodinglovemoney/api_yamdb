@@ -4,7 +4,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (ReviewsSerializer,
                              CommentsSerializer,
-                             TitleSerializer, GenreSerializer, CategorySerializer)
+                             TitleGetSerializer,
+                             TitlePostSerializer, GenreSerializer, CategorySerializer)
 from reviews.models import Reviews, Comments, Title, Genre, Category
 
 
@@ -20,9 +21,14 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    pagination_class = None
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleGetSerializer
+        return TitlePostSerializer
 
 
 class GenreViewSet(mixins.CreateModelMixin,
@@ -45,4 +51,3 @@ class CategoryViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = None
-
