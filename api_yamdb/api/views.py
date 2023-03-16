@@ -1,9 +1,13 @@
-from reviews.models import Reviews, Comments
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, filters
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
 
 
-from .serializers import (ReviewsSerializer,
-                          CommentsSerializer)
+from api.serializers import (ReviewsSerializer,
+                             CommentsSerializer,
+                             TitleGetSerializer,
+                             TitlePostSerializer, GenreSerializer, CategorySerializer)
+from reviews.models import Reviews, Comments, Title, Genre, Category
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -17,19 +21,34 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Title.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleGetSerializer
+        return TitlePostSerializer
 
 
 class GenreViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    mixins.DestroyModelMixin,
                    viewsets.GenericViewSet):
-    pass
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = PageNumberPagination
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
                       mixins.ListModelMixin,
                       mixins.DestroyModelMixin,
                       viewsets.GenericViewSet):
-    pass
-
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = PageNumberPagination
