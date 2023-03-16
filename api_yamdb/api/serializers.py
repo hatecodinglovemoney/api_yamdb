@@ -10,21 +10,22 @@ ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть бол�
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        field = '__all__'
+        fields = '__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        field = '__all__'
+        fields = '__all__'
 
 
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
+    category = CategorySerializer(many=False)
 
     class Meta:
         model = Title
-        field = '__all__'
+        fields = '__all__'
 
     def validate_year(self, value):
         year = dt.date.today().year
@@ -36,10 +37,10 @@ class TitleSerializer(serializers.ModelSerializer):
 class ReviewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reviews
-        field = '__all__'
+        fields = '__all__'
 
 
 class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comments
-        field = '__all__'
+        fields = '__all__'
