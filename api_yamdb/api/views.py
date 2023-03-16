@@ -1,4 +1,5 @@
 from rest_framework import mixins, viewsets, filters
+from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
 
@@ -23,7 +24,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
-    pagination_class = None
+    pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -39,7 +40,7 @@ class GenreViewSet(mixins.CreateModelMixin,
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    pagination_class = None
+    pagination_class = PageNumberPagination
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
@@ -50,4 +51,4 @@ class CategoryViewSet(mixins.CreateModelMixin,
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    pagination_class = None
+    pagination_class = PageNumberPagination
