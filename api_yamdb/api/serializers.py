@@ -38,7 +38,6 @@ class TitlePostSerializer(serializers.ModelSerializer):
         many=False,
         slug_field='slug',
         queryset=Category.objects.all())
-    voice = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Title
