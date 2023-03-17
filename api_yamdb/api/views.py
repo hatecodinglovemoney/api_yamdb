@@ -26,7 +26,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         scores = reviews.values_list('score', flat=True)
         scores = list(scores)
         scores.append(serializer.validated_data['score'])
-        if scores == 0:
+        if scores is None:
             return 'Оценок ещё нет'
         rating = sum(scores) / len(scores)
         title.rating = round(rating)
