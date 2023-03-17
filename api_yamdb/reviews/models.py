@@ -5,6 +5,19 @@ from api_yamdb.settings import SLICE_STR_SYMBOLS
 
 User = get_user_model()
 
+RATING_CHOICES = (
+    (1, 1),
+    (2, 2),
+    (3, 3),
+    (4, 4),
+    (5, 5),
+    (6, 6),
+    (7, 7),
+    (8, 8),
+    (9, 9),
+    (10, 10),
+)
+
 
 class Category(models.Model):
     name = models.CharField(
@@ -71,6 +84,11 @@ class Title(models.Model):
         null=True,
         blank=True,
     )
+    rating = models.IntegerField(
+        verbose_name='Рейтинг произведения',
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         default_related_name = 'titles'
@@ -78,7 +96,7 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
 
     def __str__(self) -> str:
-        return f'{self.name[:SLICE_STR_SYMBOLS]}'
+        return f'{self.name[:SLICE_STR_SYMBOLS]}-score {self.score}'
 
 
 class GenreTitle(models.Model):
@@ -100,8 +118,8 @@ class GenreTitle(models.Model):
         return f'{self.genre}-{self.title}'
 
 
-class Reviews(models.Model):
-    """Отзывы."""
+class Review(models.Model):
+    """Отзывы пользователей."""
     text = models.TextField(
         verbose_name='Текст отзыва',
         help_text='Введите текст отзыва'
@@ -114,17 +132,26 @@ class Reviews(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        verbose_name='Произведения'
+        verbose_name='Произведение'
     )
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True
     )
+    score = models.PositiveSmallIntegerField(
+        verbose_name='Оценка',
+        on_delete=models.CASCADE,
+        choices=RATING_CHOICES,
+    )
+    voice = models.BooleanField(
+        verbose_name='Голос',
+        default=False,
+    )
 
     class Meta:
-        ordering = ['-created']
-        default_related_name = 'reviews'
-        verbose_name = 'Отзывы'
+        ordering = ['-pub_date']
+        default_related_name = 'review'
+        verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = (
             models.UniqueConstraint(
@@ -137,35 +164,35 @@ class Reviews(models.Model):
         return self.text[:SLICE_STR_SYMBOLS]
 
 
-class Comments(models.Model):
-    """Комментарии"""
+class Comment(models.Model):
+    """Комментарии пользователей."""
     text = models.TextField(
         verbose_name='Текст комментария',
         help_text='Введите текст комментария'
     )
     reviews = models.ForeignKey(
-        Reviews,
+        Review,
         on_delete=models.CASCADE,
-        verbose_name='Комментарии'
+        verbose_name='Отзыв'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор'
     )
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True
     )
 
     class Meta:
-        ordering = ['-created']
-        default_related_name = 'comments'
-        verbose_name = 'Комментарии'
+        ordering = ['-pub_date']
+        default_related_name = 'comment'
+        verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         constraints = (
             models.UniqueConstraint(
-                fields=['author', 'reviews', 'text'],
+                fields=['author', 'review', 'text'],
                 name='unique_text_reviews'
             ),
         )
