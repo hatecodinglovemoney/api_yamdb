@@ -2,7 +2,7 @@ import datetime as dt
 
 from rest_framework import serializers
 
-from reviews.models import Category, Genre, Title, Reviews, Comments
+from reviews.models import Category, Genre, Title, Review, Comment
 
 ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть больше текущего!'
 
@@ -22,6 +22,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TitleGetSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer(many=False)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -43,19 +44,43 @@ class TitlePostSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_year(self, value):
+        """Запрещает пользователям выбирать год выше текущего."""
         year = dt.date.today().year
         if value > year:
             raise serializers.ValidationError(ERROR_YEAR_FROM_FUTURE)
         return value
 
 
-class ReviewsSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+    )
+
     class Meta:
-        model = Reviews
+        model = Review
         fields = '__all__'
 
+    def validate(self, data):
+        """Запрещает пользователям оставлять повторные отзывы."""
+        title = int(data['title'])
+        author = self.context['request'].user
+        if Review.objects.filter(title=title, author=author).exists():
+            raise serializers.ValidationError(
+                'Вы уже оставляли отзыв на это произведение'
+            )
+        return data
 
-class CommentsSerializer(serializers.ModelSerializer):
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+    )
+
     class Meta:
-        model = Comments
+        model = Comment
         fields = '__all__'
+        read_only_fields = ('review',)
