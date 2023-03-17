@@ -58,7 +58,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
         default=serializers.CurrentUserDefault(),
     )
-    voice = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Review

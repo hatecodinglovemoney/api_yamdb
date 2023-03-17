@@ -142,10 +142,7 @@ class Review(models.Model):
         verbose_name='Оценка',
         on_delete=models.CASCADE,
         choices=RATING_CHOICES,
-    )
-    voice = models.BooleanField(
-        verbose_name='Голос',
-        default=False,
+        null=True,
     )
 
     class Meta:
