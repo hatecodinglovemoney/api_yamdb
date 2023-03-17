@@ -3,21 +3,23 @@ from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
 
-from api.serializers import (ReviewsSerializer,
-                             CommentsSerializer,
+from api.serializers import (CategorySerializer,
+                             CommentSerializer,
+                             GenreSerializer,
+                             ReviewSerializer,
                              TitleGetSerializer,
-                             TitlePostSerializer, GenreSerializer, CategorySerializer)
-from reviews.models import Reviews, Comments, Title, Genre, Category
+                             TitlePostSerializer)
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
-class ReviewsViewSet(viewsets.ModelViewSet):
-    queryset = Reviews.objects.all()
-    serializer_class = ReviewsSerializer
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
 
 
-class CommentsViewSet(viewsets.ModelViewSet):
-    queryset = Comments.objects.all()
-    serializer_class = CommentsSerializer
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
 
 
 class TitleViewSet(viewsets.ModelViewSet):
