@@ -87,11 +87,6 @@ class Title(models.Model):
         null=True,
         blank=True,
     )
-    rating = models.IntegerField(
-        verbose_name='Рейтинг произведения',
-        blank=True,
-        null=True,
-    )
 
     class Meta:
         default_related_name = 'titles'
@@ -99,7 +94,7 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
 
     def __str__(self) -> str:
-        return f'{self.name[:SLICE_STR_SYMBOLS]}-score {self.score}'
+        return f'{self.name[:SLICE_STR_SYMBOLS]}'
 
 
 class GenreTitle(models.Model):
