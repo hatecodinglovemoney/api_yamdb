@@ -1,5 +1,5 @@
 import os
-from csv import DictReader
+import csv
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -27,7 +27,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for filename, model in FILE_AND_MODEL.items():
             with open(CSV_PATH + filename, 'r', encoding='utf-8') as csvfile:
-                reader = DictReader(csvfile)
+                reader = csv.reader(csvfile)
                 next(reader)
                 for row in reader:
                     model(row)
