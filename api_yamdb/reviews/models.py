@@ -140,7 +140,6 @@ class Review(models.Model):
     )
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
-        on_delete=models.CASCADE,
         choices=RATING_CHOICES,
         null=True,
     )
@@ -189,8 +188,8 @@ class Comment(models.Model):
         verbose_name_plural = 'Комментарии'
         constraints = (
             models.UniqueConstraint(
-                fields=['author', 'review', 'text'],
-                name='unique_text_reviews'
+                fields=['author', 'text'],
+                name='unique_text'
             ),
         )
 
