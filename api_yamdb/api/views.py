@@ -41,7 +41,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().aggregate(
-        rating=Avg('rating__review__score')
+        rating=Avg('review__score')
     )
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
