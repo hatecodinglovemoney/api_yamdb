@@ -29,12 +29,18 @@ class TitleGetSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ObjectField(serializers.SlugRelatedField):
+    def to_representation(self, obj):
+        return {'name': obj.name,
+                'slug': obj.slug}
+
+
 class TitlePostSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
+    genre = ObjectField(
         many=True,
         slug_field='slug',
         queryset=Genre.objects.all())
-    category = serializers.SlugRelatedField(
+    category = ObjectField(
         many=False,
         slug_field='slug',
         queryset=Category.objects.all())
