@@ -20,6 +20,7 @@ RATING_CHOICES = (
 
 
 class Category(models.Model):
+    """Категория."""
     name = models.CharField(
         verbose_name='Название категории',
         max_length=256,
@@ -40,6 +41,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Жанр."""
     name = models.CharField(
         verbose_name='Название жанра',
         max_length=256,
@@ -60,6 +62,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Произведение."""
     name = models.CharField(
         verbose_name='Название',
         max_length=256,
@@ -100,6 +103,7 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    """Жанр произведения."""
     genre = models.ForeignKey(
         Genre,
         on_delete=models.SET_NULL,
