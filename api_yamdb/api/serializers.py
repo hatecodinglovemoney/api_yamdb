@@ -1,10 +1,53 @@
 import datetime as dt
 
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Genre, Title, Review, Comment
+from users.validators import validate_username
+
+User = get_user_model()
 
 ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть больше текущего!'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализация данных пользователя."""
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
+
+    def validate_unique_username(self, value):
+        if (
+            self.context.get('request').method == 'POST'
+            and User.objects.filter(username=value).exists()
+        ):
+            raise ValidationError(
+                'Пользователь с таким именем уже зарегестрирован.'
+            )
+        return validate_username(value)
+
+    def validate_unique_email(self, value):
+        if User.objects.filter(email=value).exists():
+            return serializers.ValidationError(
+                'Данный Email уже зарегистрирован')
+        return value
+
+
+class SignupSerializer(serializers.ModelSerializer):
+    """Сериализация данных пользователя при регистрации."""
+    username = serializers.CharField(required=True, max_length=150,
+                                     validators=(validate_username,))
+    email = serializers.EmailField(required=True, max_length=150)
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    """Сериализация данных для получения токена."""
+    username = serializers.CharField(required=True, max_length=150,
+                                     validators=(validate_username,))
+    confirmation_code = serializers.CharField(required=True)
 
 
 class GenreSerializer(serializers.ModelSerializer):

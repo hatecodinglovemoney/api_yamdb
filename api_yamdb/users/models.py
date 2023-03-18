@@ -15,6 +15,7 @@ ROLE_CHOICES = (
 
 
 class User(AbstractUser):
+    """Кастомная модель пользователя."""
     username = models.CharField(
         verbose_name='Имя пользователя',
         validators=(validate_username,),
@@ -54,14 +55,17 @@ class User(AbstractUser):
 
     @property
     def is_user(self):
+        """Обычный пользователь."""
         return self.role == USER
 
     @property
     def is_admin(self):
+        """Пользователь с правами администратора."""
         return self.role == ADMIN
 
     @property
     def is_moderator(self):
+        """Пользователь с правами модератора."""
         return self.role == MODERATOR
 
     class Meta:
