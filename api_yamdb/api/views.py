@@ -30,6 +30,7 @@ from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
+
 class UserViewSet(viewsets.ModelViewSet):
     """Администратор получает список пользователей, может создавать
     пользователя. Пользователь по url 'users/me/' может получать и изменять
