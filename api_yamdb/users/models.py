@@ -61,7 +61,7 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         """Пользователь с правами администратора."""
-        return self.role == ADMIN
+        return self.role == ADMIN or self.is_superuser or self.is_staff
 
     @property
     def is_moderator(self):
