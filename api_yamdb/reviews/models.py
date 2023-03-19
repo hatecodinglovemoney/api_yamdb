@@ -150,9 +150,8 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         constraints = (
             models.UniqueConstraint(
-                fields=['author', 'title', 'text'],
-                name='unique_text_title'
-            ),
+                fields=['author', 'title'],
+                name='unique_author_title'),
         )
 
     def __str__(self) -> str:
@@ -165,7 +164,7 @@ class Comment(models.Model):
         verbose_name='Текст комментария',
         help_text='Введите текст комментария'
     )
-    reviews = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         verbose_name='Отзыв'

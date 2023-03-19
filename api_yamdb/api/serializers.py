@@ -9,6 +9,7 @@ from users.validators import validate_username
 User = get_user_model()
 
 ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть больше текущего!'
+ERROR_REPEAT_REVIEW = 'Вы уже оставляли отзыв на это произведение'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -64,7 +65,10 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id', 'name', 'year', 'description',
+            'genre', 'category', 'rating'
+        )
 
 
 class ObjectField(serializers.SlugRelatedField):
@@ -104,28 +108,34 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализация данных для эндпоитов Отзывов."""
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault(),
     )
+    title = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=Title.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
-        title = int(data['title'])
         author = self.context['request'].user
-        if Review.objects.filter(title=title, author=author).exists():
-            raise serializers.ValidationError(
-                'Вы уже оставляли отзыв на это произведение'
-            )
+        title_id = self.context.get('view').kwargs.get('title_id')
+        if (self.context['request'].method == 'POST'
+                and Review.objects.filter(title_id=title_id, author=author).exists()):
+            raise serializers.ValidationError(ERROR_REPEAT_REVIEW)
         return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализация данных для эндпоитов Коментариев."""
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
