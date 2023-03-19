@@ -1,3 +1,4 @@
+import django_filters
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -107,6 +108,25 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
 
+class TitleFilter(django_filters.FilterSet):
+    """
+    Кастомный фильтр для Произведений.
+    Решает проблему поиска по slug Жанра и Категории.
+    """
+    genre = django_filters.CharFilter(
+        field_name='genre__slug', lookup_expr='contains')
+    category = django_filters.CharFilter(
+        field_name='category__slug', lookup_expr='contains')
+    name = django_filters.CharFilter(
+        field_name='name', lookup_expr='contains')
+    year = django_filters.NumberFilter(
+        field_name='year', lookup_expr='exact')
+
+    class Meta:
+        model = Title
+        fields = ('genre', 'category', 'name', 'year')
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     """
     Вьюсет для обработки эндпоинтов:
@@ -115,7 +135,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     """
     queryset = Title.objects.all()
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
@@ -151,7 +171,7 @@ class CategoryViewSet(mixins.CreateModelMixin,
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
-    /category/, /category/{slug}/
+    /categories/, /categories/{slug}/
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
