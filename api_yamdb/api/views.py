@@ -107,7 +107,6 @@ def get_token(request):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
