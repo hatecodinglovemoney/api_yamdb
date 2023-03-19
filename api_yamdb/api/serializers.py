@@ -2,7 +2,6 @@ import datetime as dt
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.validators import validate_username
@@ -14,10 +13,6 @@ ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть бол�
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализация данных пользователя."""
-    username = serializers.CharField(required=True, max_length=150,
-                                     validators=(validate_username,))
-    email = serializers.EmailField(required=True, max_length=254)
-
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
@@ -28,23 +23,7 @@ class SignupSerializer(serializers.ModelSerializer):
     """Сериализация данных пользователя при регистрации."""
     username = serializers.CharField(required=True, max_length=150,
                                      validators=(validate_username,))
-    email = serializers.EmailField(required=True, max_length=254)
-
-    def validate_unique_username(self, value):
-        if (
-            self.context.get('request').method == 'POST'
-            and User.objects.filter(username=value).exists()
-        ):
-            raise ValidationError(
-                'Пользователь с таким именем уже зарегестрирован.'
-            )
-        return value
-
-    def validate_unique_email(self, value):
-        if User.objects.filter(email=value).exists():
-            return ValidationError(
-                'Данный Email уже зарегистрирован')
-        return value
+    email = serializers.EmailField(required=True, max_length=254,)
 
     class Meta:
         model = User

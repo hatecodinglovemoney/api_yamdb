@@ -32,14 +32,14 @@ class UserViewSet(viewsets.ModelViewSet):
      свои данные, кроме поля 'Роль'."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdmin, )
+    permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
 
-    @action(methods=('get', 'patch',), detail=False, url_path='me',
+    @action(methods=('get', 'patch'), detail=False, url_path='me',
             permission_classes=(IsAuthenticated,))
     def user_owner(self, request):
         user = request.user
