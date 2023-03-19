@@ -61,7 +61,7 @@ def review_create(row):
 def comment_create(row):
     Comment.objects.create(
         id=row[0],
-        reviews_id=row[1],
+        review_id=row[1],
         text=row[2],
         author_id=row[3],
         pub_date=row[4],
