@@ -5,7 +5,6 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import mixins, viewsets, filters
-from rest_framework import serializers
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
@@ -37,10 +36,11 @@ class UserViewSet(viewsets.ModelViewSet):
      свои данные, кроме поля 'Роль'."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdmin, )
+    permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
+    http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
 
     @action(methods=('get', 'patch',), detail=False, url_path='me',
@@ -71,18 +71,19 @@ def signup(request):
     try:
         user, created = User.objects.get_or_create(username=username,
                                                    email=email)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            'Код подтверждения',
-            f'Ваш код подтверждения: {confirmation_code}',
-            settings.ADMIN_EMAIL,
-            [user.email],
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
     except IntegrityError:
-        raise serializers.ValidationError(
-            'Данные имя пользователя или Email уже зарегистрированы'
+        return Response(
+            'Данные имя пользователя или Email уже зарегистрированы',
+            status=status.HTTP_400_BAD_REQUEST
         )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        'Код подтверждения',
+        f'Ваш код подтверждения: {confirmation_code}',
+        settings.ADMIN_EMAIL,
+        [user.email],
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -100,7 +101,7 @@ def get_token(request):
     if default_token_generator.check_token(user, confirmation_code):
         token = str(AccessToken.for_user(user))
         return Response({'token': token}, status=status.HTTP_200_OK)
-    raise serializers.ValidationError('Введен неверный код.')
+    return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

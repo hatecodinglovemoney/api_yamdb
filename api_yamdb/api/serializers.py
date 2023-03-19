@@ -14,10 +14,21 @@ ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть бол�
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализация данных пользователя."""
+    username = serializers.CharField(required=True, max_length=150,
+                                     validators=(validate_username,))
+    email = serializers.EmailField(required=True, max_length=254)
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
+
+
+class SignupSerializer(serializers.ModelSerializer):
+    """Сериализация данных пользователя при регистрации."""
+    username = serializers.CharField(required=True, max_length=150,
+                                     validators=(validate_username,))
+    email = serializers.EmailField(required=True, max_length=254)
 
     def validate_unique_username(self, value):
         if (
@@ -27,23 +38,20 @@ class UserSerializer(serializers.ModelSerializer):
             raise ValidationError(
                 'Пользователь с таким именем уже зарегестрирован.'
             )
-        return validate_username(value)
+        return value
 
     def validate_unique_email(self, value):
         if User.objects.filter(email=value).exists():
-            return serializers.ValidationError(
+            return ValidationError(
                 'Данный Email уже зарегистрирован')
         return value
 
-
-class SignupSerializer(serializers.ModelSerializer):
-    """Сериализация данных пользователя при регистрации."""
-    username = serializers.CharField(required=True, max_length=150,
-                                     validators=(validate_username,))
-    email = serializers.EmailField(required=True, max_length=150)
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
 
 
-class TokenSerializer(serializers.ModelSerializer):
+class TokenSerializer(serializers.Serializer):
     """Сериализация данных для получения токена."""
     username = serializers.CharField(required=True, max_length=150,
                                      validators=(validate_username,))
