@@ -51,18 +51,26 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализация данных для эндпоитов Жанра."""
     class Meta:
         model = Genre
         fields = ('name', 'slug')
+        lookup_field = 'slug'
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализация данных для эндпоитов Категорий."""
     class Meta:
         model = Category
         fields = ('name', 'slug')
+        lookup_field = 'slug'
 
 
 class TitleGetSerializer(serializers.ModelSerializer):
+    """
+    Сериализация данных для GET-запроса
+    к эндпоиту Произведений.
+    """
     genre = GenreSerializer(many=True)
     category = CategorySerializer(many=False)
     rating = serializers.IntegerField(read_only=True)
@@ -76,12 +84,21 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
 
 class ObjectField(serializers.SlugRelatedField):
+    """
+    Кастомное поле для правильного отображения
+    полей Жанр и Категория после POST-запроса
+    к эндпоиту Произведений.
+    """
     def to_representation(self, obj):
         return {'name': obj.name,
                 'slug': obj.slug}
 
 
 class TitlePostSerializer(serializers.ModelSerializer):
+    """
+    Сериализация данных для POST и PATCH запросов
+    к эндпоиту Произведений.
+    """
     genre = ObjectField(
         many=True,
         slug_field='slug',
@@ -95,12 +112,11 @@ class TitlePostSerializer(serializers.ModelSerializer):
         model = Title
         fields = '__all__'
 
-    def validate_year(self, value):
-        """Запрещает пользователям выбирать год выше текущего."""
-        year = dt.date.today().year
-        if value > year:
+    def validate_year(self, entered_year):
+        """Запрещает пользователям выбирать год старше текущего."""
+        if entered_year > dt.date.today().year:
             raise serializers.ValidationError(ERROR_YEAR_FROM_FUTURE)
-        return value
+        return entered_year
 
 
 class ReviewSerializer(serializers.ModelSerializer):

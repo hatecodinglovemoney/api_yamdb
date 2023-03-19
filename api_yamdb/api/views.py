@@ -1,24 +1,21 @@
+import django_filters
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework import mixins, viewsets, filters
-from rest_framework import serializers
-from rest_framework import status
+from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api_yamdb import settings
-from .permissions import (IsAdmin,
-                          IsAdminOrReadOnly,
-                          IsOwnerAdminModeratorOrReadOnly)
+from api.permissions import (IsAdmin, IsAdminOrReadOnly,
+                             IsOwnerAdminModeratorOrReadOnly)
 
 from api.serializers import (CategorySerializer,
                              CommentSerializer,
@@ -30,6 +27,12 @@ from api.serializers import (CategorySerializer,
                              SignupSerializer,
                              TokenSerializer)
 from reviews.models import Category, Genre, Review, Title
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             SignupSerializer, TitleGetSerializer,
+                             TitlePostSerializer, TokenSerializer,
+                             UserSerializer)
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
@@ -132,13 +135,53 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
+class TitleFilter(django_filters.FilterSet):
+    """
+    Кастомный фильтр для Произведений.
+    Решает проблему поиска по slug Жанра и Категории.
+    """
+    genre = django_filters.CharFilter(
+        field_name='genre__slug', lookup_expr='contains')
+    category = django_filters.CharFilter(
+        field_name='category__slug', lookup_expr='contains')
+    name = django_filters.CharFilter(
+        field_name='name', lookup_expr='contains')
+    year = django_filters.NumberFilter(
+        field_name='year', lookup_expr='exact')
+
+    class Meta:
+        model = Title
+        fields = ('genre', 'category', 'name', 'year')
+
+
+class TitleFilter(django_filters.FilterSet):
+    """
+    Кастомный фильтр для Произведений.
+    Решает проблему поиска по slug Жанра и Категории.
+    """
+    genre = django_filters.CharFilter(
+        field_name='genre__slug', lookup_expr='contains')
+    category = django_filters.CharFilter(
+        field_name='category__slug', lookup_expr='contains')
+    name = django_filters.CharFilter(
+        field_name='name', lookup_expr='contains')
+    year = django_filters.NumberFilter(
+        field_name='year', lookup_expr='exact')
+
+    class Meta:
+        model = Title
+        fields = ('genre', 'category', 'name', 'year')
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         rating=Avg('review__score')
     )
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    filterset_class = TitleFilter
+    http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
+    permission_classes = (IsAdminOrReadOnly,)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -150,19 +193,33 @@ class GenreViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    mixins.DestroyModelMixin,
                    viewsets.GenericViewSet):
+    """
+    Вьюсет для обработки эндпоинтов:
+    GET, POST, DELETE
+    /genres/, /genres/{slug}/
+    """
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
                       mixins.ListModelMixin,
                       mixins.DestroyModelMixin,
                       viewsets.GenericViewSet):
+    """
+    Вьюсет для обработки эндпоинтов:
+    GET, POST, DELETE
+    /categories/, /categories/{slug}/
+    """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
