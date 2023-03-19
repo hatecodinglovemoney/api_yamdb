@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import mixins, viewsets, filters
@@ -15,7 +16,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api_yamdb import settings
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsOwnerAdminModeratorOrReadOnly
+from .permissions import (IsAdmin,
+                          IsAdminOrReadOnly,
+                          IsOwnerAdminModeratorOrReadOnly)
 
 from api.serializers import (CategorySerializer,
                              CommentSerializer,
@@ -26,7 +29,7 @@ from api.serializers import (CategorySerializer,
                              UserSerializer,
                              SignupSerializer,
                              TokenSerializer)
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
@@ -129,7 +132,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all().aggregate(
+    queryset = Title.objects.all().annotate(
         rating=Avg('review__score')
     )
     filter_backends = (DjangoFilterBackend,)
