@@ -10,6 +10,7 @@ from users.validators import validate_username
 User = get_user_model()
 
 ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть больше текущего!'
+ERROR_REPEAT_REVIEW = 'Вы уже оставляли отзыв на это произведение'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -128,6 +129,7 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализация данных для эндпоитов Отзывов."""
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
@@ -149,13 +151,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         title_id = self.context.get('view').kwargs.get('title_id')
         if (self.context['request'].method == 'POST'
                 and Review.objects.filter(title_id=title_id, author=author).exists()):
-            raise serializers.ValidationError(
-                'Вы уже оставляли отзыв на это произведение'
-            )
+            raise serializers.ValidationError(ERROR_REPEAT_REVIEW)
         return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализация данных для эндпоитов Коментариев."""
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,

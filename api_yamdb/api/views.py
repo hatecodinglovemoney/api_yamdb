@@ -101,6 +101,12 @@ def get_token(request):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    Вьюсет для обработки эндпоинтов:
+    GET DETAIL, GET LIST, POST, PATCH, DELETE
+    /titles/{title_id}/reviews/{review_id}/comments/,
+    /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
+    """
     serializer_class = ReviewSerializer
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
@@ -114,6 +120,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """
+    Вьюсет для обработки эндпоинтов:
+    GET DETAIL, GET LIST, POST, PATCH, DELETE
+    /titles/{title_id}/reviews/{review_id}/comments/,
+    /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
+    """
     serializer_class = CommentSerializer
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
