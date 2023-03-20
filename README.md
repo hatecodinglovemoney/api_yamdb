@@ -571,7 +571,7 @@ PATCH http://127.0.0.1:8000/api/v1/users/me/
 ```
 
 # Авторы:
-**Наталья Бутрина** -  https://github.com/hatecodinglovemoney
+**Ната Бутрина** -  https://github.com/hatecodinglovemoney
 
 **Соболев Кирилл** - https://github.com/sblvkr
 
