@@ -26,11 +26,18 @@ from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
+EMAIL_HEADER = 'Код подтверждения'
+EMAIL_TEXT = 'Ваш код подтверждения: {confirmation_code}'
+EMAIL_ERROR = 'Данные имя пользователя или Email уже зарегистрированы'
+CODE_ERROR = 'Введен неверный код.'
+
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Администратор получает список пользователей, может создавать
-    пользователя. Пользователь по url 'users/me/' может получать и изменять
-     свои данные, кроме поля 'Роль'."""
+    """
+    Администратор получает список пользователей, может создавать,
+    удалять, редактировать пользователя. Пользователь по url 'users/me/'
+    может получать и изменять свои данные, кроме поля 'Роль'.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
@@ -70,16 +77,14 @@ def signup(request):
                                                    email=email)
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
-            'Код подтверждения',
-            f'Ваш код подтверждения: {confirmation_code}',
+            EMAIL_HEADER,
+            EMAIL_TEXT.format(confirmation_code=confirmation_code),
             settings.ADMIN_EMAIL,
             [user.email],
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
     except IntegrityError:
-        raise serializers.ValidationError(
-            'Данные имя пользователя или Email уже зарегистрированы'
-        )
+        raise serializers.ValidationError(EMAIL_ERROR)
 
 
 @api_view(['POST'])
@@ -97,7 +102,7 @@ def get_token(request):
     if default_token_generator.check_token(user, confirmation_code):
         token = str(AccessToken.for_user(user))
         return Response({'token': token}, status=status.HTTP_200_OK)
-    raise serializers.ValidationError('Введен неверный код.')
+    raise serializers.ValidationError(CODE_ERROR)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
