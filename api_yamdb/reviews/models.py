@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 from api_yamdb.settings import SLICE_STR_SYMBOLS
+from reviews.validators import validate_year
 
 User = get_user_model()
 
@@ -69,6 +70,7 @@ class Title(models.Model):
     )
     year = models.IntegerField(
         verbose_name='Год',
+        validators=(validate_year,),
     )
     description = models.TextField(
         verbose_name='Описание',
