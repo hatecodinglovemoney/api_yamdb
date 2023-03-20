@@ -16,7 +16,7 @@
 - Библиотека Simple JWT - работа с JWT-токеном
 - База данных - SQLite3
 -  requirements.txt:
-```
+```BASH
 requests==2.26.0
 Django==3.2
 djangorestframework==3.12.4
@@ -31,19 +31,19 @@ djangorestframework-simplejwt==5.2.2
 # Как запустить проект в dev-режиме:
 
 **Клонировать репозиторий** `api_yamdb` **и перейти в него в командной строке:**
-```BASH
-    cd api_yamdb
+```PYTHON
+	cd api_yamdb
 ```
 **Cоздать и активировать виртуальное окружение:**
-```BASH
+```PYTHON
 	Linux:~$ python3 -m venv venv
 	Win, Mac:~$ python -m venv venv
 ```
 ```PYTHON
-	source env/bin/activate
+	source venv/bin/activate
 ```
 **Установить зависимости из файла requirements.txt:**
-```BASH
+```PYTHON
 	Linux:~$ python3 -m pip install --upgrade pip
 	Win, Mac:~$ python -m pip install --upgrade pip
 ```
