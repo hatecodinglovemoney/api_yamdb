@@ -3,7 +3,7 @@ import datetime as dt
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from reviews.models import Category, Genre, Title, Review, Comment
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.validators import validate_username
 
 User = get_user_model()
@@ -129,7 +129,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         author = self.context['request'].user
         title_id = self.context.get('view').kwargs.get('title_id')
         if (self.context['request'].method == 'POST'
-                and Review.objects.filter(title_id=title_id, author=author).exists()):
+                and Review.objects.filter(
+                    title_id=title_id, author=author).exists()):
             raise serializers.ValidationError(ERROR_REPEAT_REVIEW)
         return data
 

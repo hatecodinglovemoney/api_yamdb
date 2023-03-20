@@ -1,5 +1,5 @@
-import os
 import csv
+import os
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
