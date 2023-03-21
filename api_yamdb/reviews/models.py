@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from api_yamdb.settings import SLICE_STR_SYMBOLS
-from reviews.validators import validate_username
+from reviews.validators import validate_year, validate_username
 
 
 RATING_CHOICES = (
@@ -92,46 +92,38 @@ class User(AbstractUser):
         return self.username
 
 
-class Category(models.Model):
-    """Категория."""
+class AbstractModel(models.Model):
     name = models.CharField(
-        verbose_name='Название категории',
+        verbose_name='Название',
         max_length=256,
     )
     slug = models.SlugField(
-        verbose_name='url',
+        verbose_name='slug',
         max_length=50,
         unique=True,
     )
 
+
+class Category(AbstractModel):
+    """Категория (Наследуется от AbstractModel)."""
     class Meta:
         default_related_name = 'categories'
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
     def __str__(self) -> str:
-        return f'{self.name[:SLICE_STR_SYMBOLS]}'
+        return self.name[:SLICE_STR_SYMBOLS]
 
 
-class Genre(models.Model):
-    """Жанр."""
-    name = models.CharField(
-        verbose_name='Название жанра',
-        max_length=256,
-    )
-    slug = models.SlugField(
-        verbose_name='url',
-        max_length=50,
-        unique=True,
-    )
-
+class Genre(AbstractModel):
+    """Жанр (Наследуется от AbstractModel)."""
     class Meta:
         default_related_name = 'genres'
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
     def __str__(self) -> str:
-        return f'{self.name[:SLICE_STR_SYMBOLS]}'
+        return self.name[:SLICE_STR_SYMBOLS]
 
 
 class Title(models.Model):
@@ -142,6 +134,7 @@ class Title(models.Model):
     )
     year = models.IntegerField(
         verbose_name='Год',
+        validators=(validate_year,),
     )
     description = models.TextField(
         verbose_name='Описание',
@@ -167,7 +160,7 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
 
     def __str__(self) -> str:
-        return f'{self.name[:SLICE_STR_SYMBOLS]}'
+        return self.name[:SLICE_STR_SYMBOLS]
 
 
 class GenreTitle(models.Model):

@@ -15,13 +15,18 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from api_yamdb import settings
 
-from api.permissions import (IsAdmin, IsAdminOrReadOnly,
-                             IsOwnerAdminModeratorOrReadOnly)
-from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, ReviewSerializer,
-                             SignupSerializer, TitleGetSerializer,
-                             TitlePostSerializer, TokenSerializer,
-                             UserSerializer)
+from api.permissions import (
+    IsAdmin, IsAdminOrReadOnly,
+    IsOwnerAdminModeratorOrReadOnly,
+)
+from api.filters import TitleFilter
+from api.serializers import (
+    CategorySerializer, CommentSerializer,
+    GenreSerializer, ReviewSerializer,
+    SignupSerializer, TitleGetSerializer,
+    TitlePostSerializer, TokenSerializer,
+    UserSerializer,
+)
 from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
@@ -151,25 +156,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=self.get_review())
 
 
-class TitleFilter(django_filters.FilterSet):
-    """
-    Кастомный фильтр для Произведений.
-    Решает проблему поиска по slug Жанра и Категории.
-    """
-    genre = django_filters.CharFilter(
-        field_name='genre__slug', lookup_expr='contains')
-    category = django_filters.CharFilter(
-        field_name='category__slug', lookup_expr='contains')
-    name = django_filters.CharFilter(
-        field_name='name', lookup_expr='contains')
-    year = django_filters.NumberFilter(
-        field_name='year', lookup_expr='exact')
-
-    class Meta:
-        model = Title
-        fields = ('genre', 'category', 'name', 'year')
-
-
 class TitleViewSet(viewsets.ModelViewSet):
     """
     Вьюсет для обработки эндпоинтов:
@@ -192,10 +178,22 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitlePostSerializer
 
 
-class GenreViewSet(mixins.CreateModelMixin,
-                   mixins.ListModelMixin,
-                   mixins.DestroyModelMixin,
-                   viewsets.GenericViewSet):
+class AbstractViewSet(mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    """
+    Абстрактный вьюсет для Жанров и Категорий
+    с поддержкой запросв GET LIST, POST, DELETE.
+    """
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class GenreViewSet(AbstractViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -203,17 +201,9 @@ class GenreViewSet(mixins.CreateModelMixin,
     """
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly,)
 
 
-class CategoryViewSet(mixins.CreateModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(AbstractViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -221,8 +211,3 @@ class CategoryViewSet(mixins.CreateModelMixin,
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly,)

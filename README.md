@@ -570,6 +570,15 @@ PATCH http://127.0.0.1:8000/api/v1/users/me/
 }
 ```
 
+# Импорт CSV файлов в БД:
+0. Желательно проводить импорт в чистую БД.
+1. Запустить команду в терминале:
+```BASH
+	Linux:~$ python3 manage.py import_csv
+	Win, Mac:~$ python manage.py import_csv
+```
+2. Ожидать полной отработки скрипта
+
 # Авторы:
 **Ната Бутрина** -  https://github.com/hatecodinglovemoney
 

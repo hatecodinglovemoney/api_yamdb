@@ -1,15 +1,13 @@
-import datetime as dt
-
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from reviews.validators import validate_username
+
+from reviews.validators import validate_year, validate_username
 
 User = get_user_model()
 
-ERROR_YEAR_FROM_FUTURE = 'Год выпуска не может быть больше текущего!'
 ERROR_REPEAT_REVIEW = 'Вы уже оставляли отзыв на это произведение'
 
 
@@ -40,7 +38,7 @@ class TokenSerializer(serializers.Serializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Сериализация данных для эндпоитов Жанра."""
+    """Сериализация данных для эндпоинтов Жанра."""
     class Meta:
         model = Genre
         fields = ('name', 'slug')
@@ -48,7 +46,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализация данных для эндпоитов Категорий."""
+    """Сериализация данных для эндпоинтов Категорий."""
     class Meta:
         model = Category
         fields = ('name', 'slug')
@@ -58,10 +56,10 @@ class CategorySerializer(serializers.ModelSerializer):
 class TitleGetSerializer(serializers.ModelSerializer):
     """
     Сериализация данных для GET-запроса
-    к эндпоиту Произведений.
+    к эндпоинту Произведений.
     """
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer(many=False)
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(many=False, read_only=True)
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -70,23 +68,26 @@ class TitleGetSerializer(serializers.ModelSerializer):
             'id', 'name', 'year', 'description',
             'genre', 'category', 'rating'
         )
+        read_only_fields = fields
 
 
 class ObjectField(serializers.SlugRelatedField):
     """
     Кастомное поле для правильного отображения
     полей Жанр и Категория после POST-запроса
-    к эндпоиту Произведений.
+    к эндпоинту Произведений.
     """
     def to_representation(self, obj):
-        return {'name': obj.name,
-                'slug': obj.slug}
+        return {
+            'name': obj.name,
+            'slug': obj.slug,
+        }
 
 
 class TitlePostSerializer(serializers.ModelSerializer):
     """
     Сериализация данных для POST и PATCH запросов
-    к эндпоиту Произведений.
+    к эндпоинту Произведений.
     """
     genre = ObjectField(
         many=True,
@@ -96,20 +97,17 @@ class TitlePostSerializer(serializers.ModelSerializer):
         many=False,
         slug_field='slug',
         queryset=Category.objects.all())
+    year = serializers.IntegerField(
+        validators=(validate_year,),
+    )
 
     class Meta:
         model = Title
-        fields = '__all__'
-
-    def validate_year(self, entered_year):
-        """Запрещает пользователям выбирать год старше текущего."""
-        if entered_year > dt.date.today().year:
-            raise serializers.ValidationError(ERROR_YEAR_FROM_FUTURE)
-        return entered_year
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализация данных для эндпоитов Отзывов."""
+    """Сериализация данных для эндпоинтов Отзывов."""
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
@@ -134,7 +132,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Сериализация данных для эндпоитов Коментариев."""
+    """Сериализация данных для эндпоинтов Коментариев."""
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
