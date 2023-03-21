@@ -162,7 +162,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     /titles/, /titles/{titles_id}/
     """
     queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')
+        rating=Avg('review__score')
     )
     ordering_fields = ('-year', 'name')
     filter_backends = (DjangoFilterBackend,)
