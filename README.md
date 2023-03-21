@@ -20,7 +20,7 @@
 
 **Клонировать репозиторий** `api_yamdb` **и перейти в него в командной строке:**
 ```PYTHON
-  git clone git@github.com:hatecodinglovemoney/api_yamdb.git
+	git clone git@github.com:hatecodinglovemoney/api_yamdb.git
 	cd api_yamdb
 ```
 **Cоздать и активировать виртуальное окружение:**
@@ -75,8 +75,8 @@ POST http://127.0.0.1:8000/api/v1/auth/signup/
 ```
 ```JSON
 {
-	"email": "user@example.com",
-	"username": "string"
+  "email": "user@example.com",
+  "username": "string"
 }
 ```
 
@@ -560,13 +560,13 @@ PATCH http://127.0.0.1:8000/api/v1/users/me/
 ```
 
 # Импорт CSV файлов в БД:
-0. Желательно проводить импорт в чистую БД.
-1. Запустить команду в терминале:
+1. Желательно проводить импорт в чистую БД.
+2. Запустить команду в терминале: 
 ```BASH
-	Linux:~$ python3 manage.py import_csv
-	Win, Mac:~$ python manage.py import_csv
+  Linux:~$ python3 manage.py import_csv
+  Win, Mac:~$ python manage.py import_csv
 ```
-2. Ожидать полной отработки скрипта
+3. Ожидать полной отработки скрипта
 
 # Авторы:
 [**Ната Бутрина**](https://github.com/hatecodinglovemoney)
