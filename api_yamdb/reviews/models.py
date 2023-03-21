@@ -1,22 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 
-from api_yamdb.settings import SLICE_STR_SYMBOLS
+from api_yamdb.settings import SLICE_STR_SYMBOLS, SCORE_MIN, SCORE_MAX
 from reviews.validators import validate_year, validate_username
 
-
-RATING_CHOICES = (
-    (1, 1),
-    (2, 2),
-    (3, 3),
-    (4, 4),
-    (5, 5),
-    (6, 6),
-    (7, 7),
-    (8, 8),
-    (9, 9),
-    (10, 10),
-)
 
 USER = 'user'
 ADMIN = 'admin'
@@ -26,6 +14,10 @@ ROLE_CHOICES = (
     (USER, 'Пользователь'),
     (MODERATOR, 'Модератор'),
     (ADMIN, 'Администратор'),
+)
+
+ERROR_SCORE_MIN_MAX = (
+    f'Допустимы значения от {SCORE_MIN} до {SCORE_MAX}'
 )
 
 
@@ -92,7 +84,8 @@ class User(AbstractUser):
         return self.username
 
 
-class AbstractModel(models.Model):
+class CategoryOrGenreModel(models.Model):
+    """Родительский класс для категорий и жанров."""
     name = models.CharField(
         verbose_name='Название',
         max_length=256,
@@ -104,7 +97,7 @@ class AbstractModel(models.Model):
     )
 
 
-class Category(AbstractModel):
+class Category(CategoryOrGenreModel):
     """Категория (Наследуется от AbstractModel)."""
     class Meta:
         default_related_name = 'categories'
@@ -115,7 +108,7 @@ class Category(AbstractModel):
         return self.name[:SLICE_STR_SYMBOLS]
 
 
-class Genre(AbstractModel):
+class Genre(CategoryOrGenreModel):
     """Жанр (Наследуется от AbstractModel)."""
     class Meta:
         default_related_name = 'genres'
@@ -183,79 +176,64 @@ class GenreTitle(models.Model):
         return f'{self.genre}-{self.title}'
 
 
-class Review(models.Model):
-    """Отзывы пользователей."""
-    text = models.TextField(
-        verbose_name='Текст отзыва',
-        help_text='Введите текст отзыва'
-    )
+class ReviewOrCommentModel(models.Model):
+    """Родительский класс для отзывов и комментариев."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Aвтор'
+        verbose_name='Aвтор',
     )
+    text = models.TextField(
+        verbose_name='Текст',
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True
+    )
+
+    class Meta:
+        abstract = True
+        ordering = ('-pub_date',)
+
+    def __str__(self) -> str:
+        return self.text[:SLICE_STR_SYMBOLS]
+
+
+class Review(ReviewOrCommentModel):
+    """Отзывы пользователей (Наследуется от ReviewOrCommentModel)."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         verbose_name='Произведение'
     )
-    pub_date = models.DateTimeField(
-        'Дата публикации',
-        auto_now_add=True
-    )
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
-        choices=RATING_CHOICES,
-        null=True,
+        validators=[
+            MinValueValidator(SCORE_MIN, ERROR_SCORE_MIN_MAX),
+            MaxValueValidator(SCORE_MAX, ERROR_SCORE_MIN_MAX),
+        ],
     )
 
     class Meta:
-        ordering = ['-pub_date']
-        default_related_name = 'review'
+        default_related_name = 'reviews'
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = (
             models.UniqueConstraint(
                 fields=['author', 'title'],
-                name='unique_author_title'),
+                name='unique_title'),
         )
 
-    def __str__(self) -> str:
-        return self.text[:SLICE_STR_SYMBOLS]
 
-
-class Comment(models.Model):
-    """Комментарии пользователей."""
-    text = models.TextField(
-        verbose_name='Текст комментария',
-        help_text='Введите текст комментария'
-    )
+class Comment(ReviewOrCommentModel):
+    """Комментарии пользователей (Наследуется от ReviewOrCommentModel)."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         verbose_name='Отзыв'
     )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Автор'
-    )
-    pub_date = models.DateTimeField(
-        'Дата публикации',
-        auto_now_add=True
-    )
 
     class Meta:
-        ordering = ['-pub_date']
-        default_related_name = 'comment'
+        default_related_name = 'comments'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        constraints = (
-            models.UniqueConstraint(
-                fields=['author', 'text'],
-                name='unique_text'
-            ),
-        )
-
-    def __str__(self) -> str:
-        return self.text[:SLICE_STR_SYMBOLS]

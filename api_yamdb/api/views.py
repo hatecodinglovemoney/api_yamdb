@@ -1,4 +1,3 @@
-import django_filters
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -118,15 +117,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
     /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
     """
     serializer_class = ReviewSerializer
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
+    def get_title(self):
+        return get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id'),
+        )
+
     def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        return title.review.select_related('title', 'author')
+        return self.get_title().reviews.select_related('title', 'author')
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title=self.get_title())
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -137,15 +141,20 @@ class CommentViewSet(viewsets.ModelViewSet):
     /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
     """
     serializer_class = CommentSerializer
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
+    def get_review(self):
+        return get_object_or_404(
+            Review,
+            id=self.kwargs.get('review_id'),
+        )
+
     def get_queryset(self):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        return review.comment.select_related('review', 'author')
+        return self.get_review().comments.select_related('review', 'author')
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(author=self.request.user, review=self.get_review())
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -154,9 +163,10 @@ class TitleViewSet(viewsets.ModelViewSet):
     GET DETAIL, GET LIST, POST, PATCH, DELETE
     /titles/, /titles/{titles_id}/
     """
-    queryset = Title.objects.all().annotate(
-        rating=Avg('review__score')
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
     )
+    ordering_fields = ('-year', 'name')
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
