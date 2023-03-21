@@ -70,29 +70,16 @@ class TitleGetSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class ObjectField(serializers.SlugRelatedField):
-    """
-    Кастомное поле для правильного отображения
-    полей Жанр и Категория после POST-запроса
-    к эндпоинту Произведений.
-    """
-    def to_representation(self, obj):
-        return {
-            'name': obj.name,
-            'slug': obj.slug,
-        }
-
-
 class TitlePostSerializer(serializers.ModelSerializer):
     """
     Сериализация данных для POST и PATCH запросов
     к эндпоинту Произведений.
     """
-    genre = ObjectField(
+    genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
         queryset=Genre.objects.all())
-    category = ObjectField(
+    category = serializers.SlugRelatedField(
         many=False,
         slug_field='slug',
         queryset=Category.objects.all())
@@ -103,6 +90,12 @@ class TitlePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
+        data['category'] = CategorySerializer(instance.category).data
+        return data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
