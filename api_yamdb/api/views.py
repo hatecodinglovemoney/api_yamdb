@@ -17,6 +17,7 @@ from api_yamdb import settings
 
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsOwnerAdminModeratorOrReadOnly)
+from api.filters import TitleFilter
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              SignupSerializer, TitleGetSerializer,
@@ -141,25 +142,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review=review)
-
-
-class TitleFilter(django_filters.FilterSet):
-    """
-    Кастомный фильтр для Произведений.
-    Решает проблему поиска по slug Жанра и Категории.
-    """
-    genre = django_filters.CharFilter(
-        field_name='genre__slug', lookup_expr='contains')
-    category = django_filters.CharFilter(
-        field_name='category__slug', lookup_expr='contains')
-    name = django_filters.CharFilter(
-        field_name='name', lookup_expr='contains')
-    year = django_filters.NumberFilter(
-        field_name='year', lookup_expr='exact')
-
-    class Meta:
-        model = Title
-        fields = ('genre', 'category', 'name', 'year')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
