@@ -1,4 +1,3 @@
-import django_filters
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -163,7 +162,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     /titles/, /titles/{titles_id}/
     """
     queryset = Title.objects.annotate(
-        rating=Avg('review__score')
+        rating=Avg('reviews__score')
     )
     ordering_fields = ('-year', 'name')
     filter_backends = (DjangoFilterBackend,)
