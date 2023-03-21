@@ -1,6 +1,7 @@
 import datetime as dt
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -114,24 +115,21 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
         default=serializers.CurrentUserDefault(),
     )
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        queryset=Title.objects.all(),
-        required=False
-    )
 
     class Meta:
         model = Review
-        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
-        author = self.context['request'].user
-        title_id = self.context.get('view').kwargs.get('title_id')
-        if (self.context['request'].method == 'POST'
-                and Review.objects.filter(
-                    title_id=title_id, author=author).exists()):
-            raise serializers.ValidationError(ERROR_REPEAT_REVIEW)
+        if not self.context.get('request').method == 'PATCH':
+            if Review.objects.filter(
+                author=self.context.get('request').user,
+                title=get_object_or_404(
+                    Title, id=self.context.get('view').kwargs.get('title_id')
+                )
+            ).exists():
+                raise serializers.ValidationError(ERROR_REPEAT_REVIEW)
         return data
 
 
@@ -145,5 +143,4 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = '__all__'
-        read_only_fields = ('review',)
+        fields = ('id', 'text', 'author', 'pub_date')
