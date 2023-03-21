@@ -117,6 +117,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
     """
     serializer_class = ReviewSerializer
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
     def get_title(self):
@@ -140,6 +141,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
     """
     serializer_class = CommentSerializer
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
     def get_review(self):
