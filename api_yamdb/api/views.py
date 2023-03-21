@@ -15,14 +15,18 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from api_yamdb import settings
 
-from api.permissions import (IsAdmin, IsAdminOrReadOnly,
-                             IsOwnerAdminModeratorOrReadOnly)
+from api.permissions import (
+    IsAdmin, IsAdminOrReadOnly,
+    IsOwnerAdminModeratorOrReadOnly,
+)
 from api.filters import TitleFilter
-from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, ReviewSerializer,
-                             SignupSerializer, TitleGetSerializer,
-                             TitlePostSerializer, TokenSerializer,
-                             UserSerializer)
+from api.serializers import (
+    CategorySerializer, CommentSerializer,
+    GenreSerializer, ReviewSerializer,
+    SignupSerializer, TitleGetSerializer,
+    TitlePostSerializer, TokenSerializer,
+    UserSerializer,
+)
 from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()

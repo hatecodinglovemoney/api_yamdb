@@ -63,8 +63,10 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description',
-                  'genre', 'category', 'rating')
+        fields = (
+            'id', 'name', 'year', 'description',
+            'genre', 'category', 'rating'
+        )
         read_only_fields = fields
 
 
@@ -75,8 +77,10 @@ class ObjectField(serializers.SlugRelatedField):
     к эндпоинту Произведений.
     """
     def to_representation(self, obj):
-        return {'name': obj.name,
-                'slug': obj.slug}
+        return {
+            'name': obj.name,
+            'slug': obj.slug,
+        }
 
 
 class TitlePostSerializer(serializers.ModelSerializer):
