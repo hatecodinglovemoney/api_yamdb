@@ -109,9 +109,9 @@ class TitlePostSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализация данных для эндпоинтов Отзывов."""
     author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
         slug_field='username',
         read_only=True,
-        default=serializers.CurrentUserDefault(),
     )
 
     class Meta:
@@ -120,23 +120,25 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""
-        if not self.context.get('request').method == 'PATCH':
-            if Review.objects.filter(
-                author=self.context.get('request').user,
-                title=get_object_or_404(
-                    Title, id=self.context.get('view').kwargs.get('title_id')
-                )
-            ).exists():
-                raise serializers.ValidationError(ERROR_REPEAT_REVIEW)
+        if not self.context.get('request').method == 'POST':
+            return data
+        if Review.objects.filter(
+            author=self.context.get('request').user,
+            title=get_object_or_404(
+                Title,
+                id=self.context.get('view').kwargs.get('title_id')
+            )
+        ).exists():
+            raise serializers.ValidationError(ERROR_REPEAT_REVIEW)
         return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализация данных для эндпоинтов Коментариев."""
     author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
         slug_field='username',
         read_only=True,
-        default=serializers.CurrentUserDefault(),
     )
 
     class Meta:

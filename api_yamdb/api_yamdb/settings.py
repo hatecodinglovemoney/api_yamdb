@@ -107,6 +107,8 @@ USE_TZ = True
 # Constants
 
 SLICE_STR_SYMBOLS = 15
+SCORE_MIN = 1
+SCORE_MAX = 10
 
 # Static files (CSS, JavaScript, Images)
 
