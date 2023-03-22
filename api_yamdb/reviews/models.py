@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from api_yamdb import settings
 from api_yamdb.settings import SLICE_STR_SYMBOLS, SCORE_MIN, SCORE_MAX
 from reviews.validators import validate_year, validate_username
 
@@ -26,21 +27,17 @@ class User(AbstractUser):
     username = models.CharField(
         verbose_name='Имя пользователя',
         validators=(validate_username,),
-        max_length=150,
+        max_length=settings.USERNAME_LENGTH,
         unique=True,
-        blank=False,
-        null=False
     )
     email = models.EmailField(
         verbose_name='Электронная почта',
-        max_length=254,
+        max_length=settings.EMAIL_LENGTH,
         unique=True,
-        blank=False,
-        null=False
     )
     role = models.CharField(
         verbose_name='Роль',
-        max_length=50,
+        max_length=settings.ROLE_LENGTH,
         choices=ROLE_CHOICES,
         default=USER,
         blank=True
@@ -51,13 +48,17 @@ class User(AbstractUser):
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=150,
+        max_length=settings.FIRST_NAME_LENGHT,
         blank=True
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=150,
+        max_length=settings.LAST_NAME_LENGHT,
         blank=True
+    )
+    confirmation_code = models.CharField(
+        max_length=settings.CONF_CODE_LENGHT,
+        default=settings.CONF_CODE_DEFAULT
     )
 
     @property
@@ -68,7 +69,7 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         """Пользователь с правами администратора."""
-        return self.role == ADMIN or self.is_superuser or self.is_staff
+        return self.role == ADMIN or self.is_staff
 
     @property
     def is_moderator(self):
@@ -76,7 +77,7 @@ class User(AbstractUser):
         return self.role == MODERATOR
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -88,11 +89,11 @@ class CategoryOrGenreModel(models.Model):
     """Родительский класс для категорий и жанров."""
     name = models.CharField(
         verbose_name='Название',
-        max_length=256,
+        max_length=settings.CATEGORY_NAME_LENGHT,
     )
     slug = models.SlugField(
         verbose_name='slug',
-        max_length=50,
+        max_length=settings.CATEGORY_SLUG_LENGHT,
         unique=True,
     )
 
@@ -123,7 +124,7 @@ class Title(models.Model):
     """Произведение."""
     name = models.CharField(
         verbose_name='Название',
-        max_length=256,
+        max_length=settings.TITLE_NAME_LENGHT,
     )
     year = models.IntegerField(
         verbose_name='Год',

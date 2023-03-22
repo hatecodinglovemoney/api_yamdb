@@ -1,5 +1,5 @@
+from random import sample
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
@@ -32,8 +32,8 @@ User = get_user_model()
 
 EMAIL_HEADER = 'Код подтверждения'
 EMAIL_TEXT = 'Ваш код подтверждения: {confirmation_code}'
-EMAIL_ERROR = 'Данные имя пользователя или Email уже зарегистрированы'
-CODE_ERROR = 'Введен неверный код.'
+USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы'
+CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -56,8 +56,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def user_owner(self, request):
         user = request.user
         if request.method == 'GET':
-            serializer = self.get_serializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                self.get_serializer(user).data,
+                status=status.HTTP_200_OK
+            )
         serializer = self.get_serializer(user, data=request.data,
                                          partial=True)
         serializer.is_valid(raise_exception=True)
@@ -79,16 +81,16 @@ def signup(request):
     try:
         user, created = User.objects.get_or_create(username=username,
                                                    email=email)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            EMAIL_HEADER,
-            EMAIL_TEXT.format(confirmation_code=confirmation_code),
-            settings.ADMIN_EMAIL,
-            [user.email],
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
     except IntegrityError:
-        raise serializers.ValidationError(EMAIL_ERROR)
+        raise serializers.ValidationError(USER_ERROR)
+    confirmation_code = ''.join(sample('0123456789', 6))
+    send_mail(
+        EMAIL_HEADER,
+        EMAIL_TEXT.format(confirmation_code=confirmation_code),
+        settings.ADMIN_EMAIL,
+        [user.email],
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -100,12 +102,17 @@ def get_token(request):
     """
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data['username']
-    confirmation_code = serializer.validated_data['confirmation_code']
-    user = get_object_or_404(User, username=username)
-    if default_token_generator.check_token(user, confirmation_code):
-        token = str(AccessToken.for_user(user))
-        return Response({'token': token}, status=status.HTTP_200_OK)
+    user = get_object_or_404(User, username=request.data['username'])
+    if (
+            user.confirmation_code != settings.CONF_CODE_DEFAULT
+            and user.confirmation_code == serializer.data['confirmation_code']
+    ):
+        return Response(
+            {'token': str(AccessToken.for_user(user))},
+            status=status.HTTP_201_CREATED
+        )
+    user.confirmation_code = settings.CONF_CODE_DEFAULT
+    user.save()
     raise serializers.ValidationError(CODE_ERROR)
 
 

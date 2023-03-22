@@ -141,3 +141,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 ADMIN_EMAIL = 'admin@yamdb.fake'
+
+USERNAME_LENGTH = 150
+EMAIL_LENGTH = 254
+ROLE_LENGTH = 9
+FIRST_NAME_LENGHT = 150
+LAST_NAME_LENGHT = 150
+CONF_CODE_LENGHT = 6
+CONF_CODE_DEFAULT = 'no_confirmation_code'
+CATEGORY_NAME_LENGHT = 256
+CATEGORY_SLUG_LENGHT = 50
+TITLE_NAME_LENGHT = 256

@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
+from api_yamdb import settings
 from reviews.models import Category, Comment, Genre, Review, Title
 
 from reviews.validators import validate_year, validate_username
@@ -13,27 +15,41 @@ ERROR_REPEAT_REVIEW = 'Вы уже оставляли отзыв на это п�
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализация данных пользователя."""
+    username = serializers.CharField(
+        required=True,
+        max_length=settings.USERNAME_LENGTH,
+        validators=(
+            validate_username,
+            UniqueValidator(queryset=User.objects.all())
+        )
+    )
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
 
 
-class SignupSerializer(serializers.ModelSerializer):
+class SignupSerializer(serializers.Serializer):
     """Сериализация данных пользователя при регистрации."""
-    username = serializers.CharField(required=True, max_length=150,
-                                     validators=(validate_username,))
-    email = serializers.EmailField(required=True, max_length=254,)
-
-    class Meta:
-        model = User
-        fields = ('username', 'email',)
+    username = serializers.CharField(
+        required=True,
+        max_length=settings.USERNAME_LENGTH,
+        validators=(validate_username,)
+    )
+    email = serializers.EmailField(
+        required=True,
+        max_length=settings.EMAIL_LENGTH,
+    )
 
 
 class TokenSerializer(serializers.Serializer):
     """Сериализация данных для получения токена."""
-    username = serializers.CharField(required=True, max_length=150,
-                                     validators=(validate_username,))
+    username = serializers.CharField(
+        required=True,
+        max_length=settings.USERNAME_LENGTH,
+        validators=(validate_username,)
+    )
     confirmation_code = serializers.CharField(required=True)
 
 
