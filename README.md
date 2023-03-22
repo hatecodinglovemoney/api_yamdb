@@ -15,23 +15,12 @@
 - Проект написан на Python 3.8 с использованием веб-фреймворка Django REST Framework.
 - Библиотека Simple JWT - работа с JWT-токеном
 - База данных - SQLite3
--  requirements.txt:
-```BASH
-requests==2.26.0
-Django==3.2
-djangorestframework==3.12.4
-django-filter==2.4.0
-PyJWT==2.1.0
-pytest==6.2.4
-pytest-django==4.4.0
-pytest-pythonpath==0.7.3
-djangorestframework-simplejwt==5.2.2
-```
 
 # Как запустить проект в dev-режиме:
 
 **Клонировать репозиторий** `api_yamdb` **и перейти в него в командной строке:**
 ```PYTHON
+	git clone git@github.com:hatecodinglovemoney/api_yamdb.git
 	cd api_yamdb
 ```
 **Cоздать и активировать виртуальное окружение:**
@@ -77,7 +66,7 @@ djangorestframework-simplejwt==5.2.2
 
 # Алгоритм регистрации новых пользователей и получение JWT-токенов
 
-1. Пользователь отправляет POST-запрос на добавление нового пользователя с параметрами `email` и `username` на эндпоинт `/api/v1/auth/signup/`. 
+1. Пользователь отправляет POST-запрос на добавление нового пользователя с параметрами `email` и `username` на эндпоинт [http://127.0.0.1:8000/api/v1/auth/signup/](http://127.0.0.1:8000/api/v1/auth/signup/). 
 - **Доступно без токена**.
 - **Использовать имя `me` в качестве `username` запрещено**. 
 - **Поля `email` и `username` должны быть уникальными**.
@@ -86,8 +75,8 @@ POST http://127.0.0.1:8000/api/v1/auth/signup/
 ```
 ```JSON
 {
-	"email": "user@example.com",
-	"username": "string"
+  "email": "user@example.com",
+  "username": "string"
 }
 ```
 
@@ -570,9 +559,18 @@ PATCH http://127.0.0.1:8000/api/v1/users/me/
 }
 ```
 
+# Импорт CSV файлов в БД:
+1. Желательно проводить импорт в чистую БД.
+2. Запустить команду в терминале: 
+```BASH
+  Linux:~$ python3 manage.py import_csv
+  Win, Mac:~$ python manage.py import_csv
+```
+3. Ожидать полной отработки скрипта
+
 # Авторы:
-**Ната Бутрина** -  https://github.com/hatecodinglovemoney
+[**Ната Бутрина**](https://github.com/hatecodinglovemoney)
 
-**Соболев Кирилл** - https://github.com/sblvkr
+[**Соболев Кирилл**](https://github.com/sblvkr)
 
-**Лев Андреев** - https://github.com/LevAndreevS
+[**Лев Андреев**](https://github.com/LevAndreevS)

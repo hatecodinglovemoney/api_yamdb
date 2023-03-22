@@ -30,7 +30,6 @@ INSTALLED_APPS = [
 
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
-    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -108,6 +107,8 @@ USE_TZ = True
 # Constants
 
 SLICE_STR_SYMBOLS = 15
+SCORE_MIN = 1
+SCORE_MAX = 10
 
 # Static files (CSS, JavaScript, Images)
 
@@ -115,7 +116,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'reviews.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -140,3 +141,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 ADMIN_EMAIL = 'admin@yamdb.fake'
+
+USERNAME_LENGTH = 150
+EMAIL_LENGTH = 254
+ROLE_LENGTH = 9
+FIRST_NAME_LENGHT = 150
+LAST_NAME_LENGHT = 150
+CONF_CODE_LENGHT = 6
+CONF_CODE_DEFAULT = 'no_confirmation_code'
+CATEGORY_NAME_LENGHT = 256
+CATEGORY_SLUG_LENGHT = 50
+TITLE_NAME_LENGHT = 256

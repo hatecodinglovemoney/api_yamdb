@@ -1,6 +1,5 @@
-import django_filters
+from random import sample
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
@@ -15,21 +14,26 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from api_yamdb import settings
 
-from api.permissions import (IsAdmin, IsAdminOrReadOnly,
-                             IsOwnerAdminModeratorOrReadOnly)
-from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, ReviewSerializer,
-                             SignupSerializer, TitleGetSerializer,
-                             TitlePostSerializer, TokenSerializer,
-                             UserSerializer)
+from api.permissions import (
+    IsAdmin, IsAdminOrReadOnly,
+    IsOwnerAdminModeratorOrReadOnly,
+)
+from api.filters import TitleFilter
+from api.serializers import (
+    CategorySerializer, CommentSerializer,
+    GenreSerializer, ReviewSerializer,
+    SignupSerializer, TitleGetSerializer,
+    TitlePostSerializer, TokenSerializer,
+    UserSerializer,
+)
 from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
 EMAIL_HEADER = 'Код подтверждения'
 EMAIL_TEXT = 'Ваш код подтверждения: {confirmation_code}'
-EMAIL_ERROR = 'Данные имя пользователя или Email уже зарегистрированы'
-CODE_ERROR = 'Введен неверный код.'
+USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы'
+CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -52,8 +56,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def user_owner(self, request):
         user = request.user
         if request.method == 'GET':
-            serializer = self.get_serializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                self.get_serializer(user).data,
+                status=status.HTTP_200_OK
+            )
         serializer = self.get_serializer(user, data=request.data,
                                          partial=True)
         serializer.is_valid(raise_exception=True)
@@ -75,16 +81,16 @@ def signup(request):
     try:
         user, created = User.objects.get_or_create(username=username,
                                                    email=email)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            EMAIL_HEADER,
-            EMAIL_TEXT.format(confirmation_code=confirmation_code),
-            settings.ADMIN_EMAIL,
-            [user.email],
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
     except IntegrityError:
-        raise serializers.ValidationError(EMAIL_ERROR)
+        raise serializers.ValidationError(USER_ERROR)
+    confirmation_code = ''.join(sample('0123456789', 6))
+    send_mail(
+        EMAIL_HEADER,
+        EMAIL_TEXT.format(confirmation_code=confirmation_code),
+        settings.ADMIN_EMAIL,
+        [user.email],
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -96,12 +102,17 @@ def get_token(request):
     """
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data['username']
-    confirmation_code = serializer.validated_data['confirmation_code']
-    user = get_object_or_404(User, username=username)
-    if default_token_generator.check_token(user, confirmation_code):
-        token = str(AccessToken.for_user(user))
-        return Response({'token': token}, status=status.HTTP_200_OK)
+    user = get_object_or_404(User, username=request.data['username'])
+    if (
+            user.confirmation_code != settings.CONF_CODE_DEFAULT
+            and user.confirmation_code == serializer.data['confirmation_code']
+    ):
+        return Response(
+            {'token': str(AccessToken.for_user(user))},
+            status=status.HTTP_201_CREATED
+        )
+    user.confirmation_code = settings.CONF_CODE_DEFAULT
+    user.save()
     raise serializers.ValidationError(CODE_ERROR)
 
 
@@ -113,15 +124,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
     /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
     """
     serializer_class = ReviewSerializer
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
+    def get_title(self):
+        return get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id'),
+        )
+
     def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        return title.review.select_related('title', 'author')
+        return self.get_title().reviews.select_related('title', 'author')
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title=self.get_title())
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -132,34 +148,20 @@ class CommentViewSet(viewsets.ModelViewSet):
     /titles/{titles_id}/reviews/{review_id}/comments/{comment_id}/
     """
     serializer_class = CommentSerializer
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsOwnerAdminModeratorOrReadOnly,)
 
+    def get_review(self):
+        return get_object_or_404(
+            Review,
+            id=self.kwargs.get('review_id'),
+        )
+
     def get_queryset(self):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        return review.comment.select_related('review', 'author')
+        return self.get_review().comments.select_related('review', 'author')
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        serializer.save(author=self.request.user, review=review)
-
-
-class TitleFilter(django_filters.FilterSet):
-    """
-    Кастомный фильтр для Произведений.
-    Решает проблему поиска по slug Жанра и Категории.
-    """
-    genre = django_filters.CharFilter(
-        field_name='genre__slug', lookup_expr='contains')
-    category = django_filters.CharFilter(
-        field_name='category__slug', lookup_expr='contains')
-    name = django_filters.CharFilter(
-        field_name='name', lookup_expr='contains')
-    year = django_filters.NumberFilter(
-        field_name='year', lookup_expr='exact')
-
-    class Meta:
-        model = Title
-        fields = ('genre', 'category', 'name', 'year')
+        serializer.save(author=self.request.user, review=self.get_review())
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -168,9 +170,10 @@ class TitleViewSet(viewsets.ModelViewSet):
     GET DETAIL, GET LIST, POST, PATCH, DELETE
     /titles/, /titles/{titles_id}/
     """
-    queryset = Title.objects.all().annotate(
-        rating=Avg('review__score')
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
     )
+    ordering_fields = ('-year', 'name')
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
@@ -183,10 +186,22 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitlePostSerializer
 
 
-class GenreViewSet(mixins.CreateModelMixin,
-                   mixins.ListModelMixin,
-                   mixins.DestroyModelMixin,
-                   viewsets.GenericViewSet):
+class AbstractViewSet(mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    """
+    Абстрактный вьюсет для Жанров и Категорий
+    с поддержкой запросв GET LIST, POST, DELETE.
+    """
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class GenreViewSet(AbstractViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -194,17 +209,9 @@ class GenreViewSet(mixins.CreateModelMixin,
     """
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly,)
 
 
-class CategoryViewSet(mixins.CreateModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(AbstractViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -212,8 +219,3 @@ class CategoryViewSet(mixins.CreateModelMixin,
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly,)
