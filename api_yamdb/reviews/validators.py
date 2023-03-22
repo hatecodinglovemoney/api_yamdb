@@ -4,7 +4,13 @@ import datetime as dt
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-ERROR_YEAR_FROM_FUTURE = 'Вы ввели {} год, но год выпуска не может быть больше текущего ({})!'
+ERROR_YEAR_FROM_FUTURE = ('Вы ввели {entered_year} год, но год выпуска '
+                          'не может быть больше текущего ({current_year})!')
+LEGAL_CHARACTERS = re.compile(r'^[\w.@+-]+$')
+LEGAL_CHARACTERS_ERROR = ('Нельзя использовать символ(ы): '
+                          '{forbidden_chars} в имени пользователя.')
+INVALID_NAMES = ('me',)
+INVALID_NAMES_ERROR = 'Имя пользователя не может быть {value}'
 
 
 def validate_year(entered_year):
@@ -12,15 +18,19 @@ def validate_year(entered_year):
     current_year = dt.date.today().year
     if entered_year > current_year:
         raise serializers.ValidationError(
-            ERROR_YEAR_FROM_FUTURE.format(entered_year, current_year))
+            ERROR_YEAR_FROM_FUTURE.format(
+                entered_year=entered_year,
+                current_year=current_year
+            )
+        )
     return entered_year
 
 
 def validate_username(value):
-    if value.lower() == 'me':
+    if value in INVALID_NAMES:
+        raise ValidationError(INVALID_NAMES_ERROR.format(value=value))
+    forbidden_chars = ''.join(set(LEGAL_CHARACTERS.sub('', value)))
+    if forbidden_chars:
         raise ValidationError(
-            'Имя пользователя не может быть "me"'
+            LEGAL_CHARACTERS_ERROR.format(forbidden_chars=forbidden_chars)
         )
-    if not re.match(r'^[\w.@+-]+\Z', value):
-        raise ValidationError('Имя пользователя содержит '
-                              'запрещенные символы')
