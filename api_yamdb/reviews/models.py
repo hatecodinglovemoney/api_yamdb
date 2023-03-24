@@ -33,7 +33,7 @@ class User(AbstractUser):
     )
     role = models.CharField(
         verbose_name='Роль',
-        max_length=settings.ROLE_LENGTH,
+        max_length=len(max(list(zip(*ROLE_CHOICES))[0], key=len)),
         choices=ROLE_CHOICES,
         default=USER,
         blank=True
@@ -78,7 +78,7 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return self.username
+        return self.username[:SLICE_STR_SYMBOLS]
 
 
 class ClassificationModel(models.Model):
@@ -172,7 +172,7 @@ class FeedbackModel(models.Model):
     """Родительский класс для отзывов и комментариев."""
 
     FEEDBACK = (
-        '{text[:SLICE_STR_SYMBOLS]} автор: {author} '
+        '{text:.15} автор: {author} '
         'дата публикации: {pub_date}'
     )
 
