@@ -29,7 +29,8 @@ def validate_year(entered_year):
 def validate_username(value):
     if value in settings.FORBIDDEN_NAMES:
         raise ValidationError(FORBIDDEN_NAMES_ERROR.format(value=value))
-    forbidden_chars = ''.join(set(re.compile(settings.LEGAL_CHARACTERS).sub('', value)))
+    forbidden_chars = ''.join(set(re.compile(
+        settings.LEGAL_CHARACTERS).sub('', value)))
     if forbidden_chars:
         raise ValidationError(
             LEGAL_CHARACTERS_ERROR.format(forbidden_chars=forbidden_chars)
