@@ -83,13 +83,18 @@ def signup(request):
                                                    email=email)
     except IntegrityError:
         raise serializers.ValidationError(USER_ERROR)
-    confirmation_code = ''.join(sample('0123456789', 6))
+    confirmation_code = ''.join(sample(
+        settings.CONF_CODE_NUMBERS,
+        settings.CONF_CODE_LENGHT
+    ))
     send_mail(
         EMAIL_HEADER,
         EMAIL_TEXT.format(confirmation_code=confirmation_code),
         settings.ADMIN_EMAIL,
         [user.email],
     )
+    user.confirmation_code = confirmation_code
+    user.save()
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -104,8 +109,8 @@ def get_token(request):
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(User, username=request.data['username'])
     if (
-            user.confirmation_code != settings.CONF_CODE_DEFAULT
-            and user.confirmation_code == serializer.data['confirmation_code']
+        user.confirmation_code != settings.CONF_CODE_DEFAULT
+        and user.confirmation_code == serializer.data['confirmation_code']
     ):
         return Response(
             {'token': str(AccessToken.for_user(user))},

@@ -18,10 +18,14 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True,
         max_length=settings.USERNAME_LENGTH,
-        validators=(
-            validate_username,
-            UniqueValidator(queryset=User.objects.all())
-        )
+        validators=(validate_username,
+                    UniqueValidator(
+                        queryset=User.objects.values_list(
+                            'username',
+                            flat=True
+                        )
+                    )
+                    )
     )
 
     class Meta:
