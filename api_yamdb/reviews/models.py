@@ -98,14 +98,14 @@ class ClassificationModel(models.Model):
 
 
 class Category(ClassificationModel):
-    """Категория (Наследуется от ClassificationModel)."""
+    """Категория произведения."""
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
 
 class Genre(ClassificationModel):
-    """Жанр (Наследуется от ClassificationModel)."""
+    """Жанр произведения."""
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
@@ -172,7 +172,7 @@ class FeedbackModel(models.Model):
     """Родительский класс для отзывов и комментариев."""
 
     FEEDBACK = (
-        '{text:.15} автор: {author} '
+        '{text:.15} username: {author.username} '
         'дата публикации: {pub_date}'
     )
 
@@ -197,13 +197,13 @@ class FeedbackModel(models.Model):
     def __str__(self):
         return self.FEEDBACK.format(
             text=self.text,
-            author=self.author,
+            author=self.author.username,
             pub_date=self.pub_date,
         )
 
 
 class Review(FeedbackModel):
-    """Отзывы пользователей (Наследуется от FeedbackModel)."""
+    """Отзывы пользователей."""
 
     ERROR_SCORE_MIN_MAX = (
         f'Допустимы значения от {SCORE_MIN} до {SCORE_MAX}'
@@ -233,7 +233,7 @@ class Review(FeedbackModel):
 
 
 class Comment(FeedbackModel):
-    """Комментарии пользователей (Наследуется от FeedbackModel)."""
+    """Комментарии пользователей."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,

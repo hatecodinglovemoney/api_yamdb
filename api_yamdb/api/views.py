@@ -179,8 +179,8 @@ class TitleViewSet(viewsets.ModelViewSet):
         rating=Avg('reviews__score')
     )
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
-    ordering = ('name', '-rating')
-    ordering_fields = ('name', 'rating', 'year')
+    ordering = ('-rating', 'name')
+    ordering_fields = ('rating', 'name', 'year')
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
@@ -192,10 +192,10 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitlePostSerializer
 
 
-class GetPostDestroyViewSet(mixins.CreateModelMixin,
-                            mixins.ListModelMixin,
-                            mixins.DestroyModelMixin,
-                            viewsets.GenericViewSet):
+class ListCreateDestroyViewSet(mixins.CreateModelMixin,
+                               mixins.ListModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
     """
     Абстрактный вьюсет для Жанров и Категорий
     с поддержкой запросв GET LIST, POST, DELETE.
@@ -207,7 +207,7 @@ class GetPostDestroyViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(GetPostDestroyViewSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -217,7 +217,7 @@ class GenreViewSet(GetPostDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(GetPostDestroyViewSet):
+class CategoryViewSet(ListCreateDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
