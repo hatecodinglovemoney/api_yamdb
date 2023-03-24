@@ -83,13 +83,18 @@ def signup(request):
                                                    email=email)
     except IntegrityError:
         raise serializers.ValidationError(USER_ERROR)
-    confirmation_code = ''.join(sample('0123456789', 6))
+    confirmation_code = ''.join(sample(
+        settings.CONF_CODE_NUMBERS,
+        settings.CONF_CODE_LENGHT
+    ))
     send_mail(
         EMAIL_HEADER,
         EMAIL_TEXT.format(confirmation_code=confirmation_code),
         settings.ADMIN_EMAIL,
         [user.email],
     )
+    user.confirmation_code = confirmation_code
+    user.save()
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -104,8 +109,8 @@ def get_token(request):
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(User, username=request.data['username'])
     if (
-            user.confirmation_code != settings.CONF_CODE_DEFAULT
-            and user.confirmation_code == serializer.data['confirmation_code']
+        user.confirmation_code != settings.CONF_CODE_DEFAULT
+        and user.confirmation_code == serializer.data['confirmation_code']
     ):
         return Response(
             {'token': str(AccessToken.for_user(user))},
@@ -173,8 +178,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
     )
-    ordering_fields = ('-year', 'name')
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    ordering = ('name', '-rating')
+    ordering_fields = ('name', 'rating', 'year')
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
@@ -186,10 +192,10 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitlePostSerializer
 
 
-class AbstractViewSet(mixins.CreateModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class GetPostDestroyViewSet(mixins.CreateModelMixin,
+                            mixins.ListModelMixin,
+                            mixins.DestroyModelMixin,
+                            viewsets.GenericViewSet):
     """
     Абстрактный вьюсет для Жанров и Категорий
     с поддержкой запросв GET LIST, POST, DELETE.
@@ -201,7 +207,7 @@ class AbstractViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(AbstractViewSet):
+class GenreViewSet(GetPostDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -211,7 +217,7 @@ class GenreViewSet(AbstractViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(AbstractViewSet):
+class CategoryViewSet(GetPostDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE

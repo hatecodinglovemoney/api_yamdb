@@ -4,9 +4,9 @@ import datetime as dt
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-ERROR_YEAR_FROM_FUTURE = ('Вы ввели {entered_year} год, но год выпуска '
-                          'не может быть больше текущего ({current_year})!')
-LEGAL_CHARACTERS = re.compile(r'^[\w.@+-]+$')
+ERROR_YEAR_FROM_FUTURE = ('Год выпуска ({entered_year}), не может '
+                          'быть больше текущего ({current_year})!')
+LEGAL_CHARACTERS = re.compile(r'[\w.@+-]')
 LEGAL_CHARACTERS_ERROR = ('Нельзя использовать символ(ы): '
                           '{forbidden_chars} в имени пользователя.')
 INVALID_NAMES = ('me',)

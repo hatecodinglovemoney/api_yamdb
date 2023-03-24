@@ -17,10 +17,6 @@ ROLE_CHOICES = (
     (ADMIN, 'Администратор'),
 )
 
-ERROR_SCORE_MIN_MAX = (
-    f'Допустимы значения от {SCORE_MIN} до {SCORE_MAX}'
-)
-
 
 class User(AbstractUser):
     """Кастомная модель пользователя."""
@@ -37,7 +33,7 @@ class User(AbstractUser):
     )
     role = models.CharField(
         verbose_name='Роль',
-        max_length=settings.ROLE_LENGTH,
+        max_length=len(max(list(zip(*ROLE_CHOICES))[0], key=len)),
         choices=ROLE_CHOICES,
         default=USER,
         blank=True
@@ -82,10 +78,10 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return self.username
+        return self.username[:SLICE_STR_SYMBOLS]
 
 
-class CategoryOrGenreModel(models.Model):
+class ClassificationModel(models.Model):
     """Родительский класс для категорий и жанров."""
     name = models.CharField(
         verbose_name='Название',
@@ -97,27 +93,22 @@ class CategoryOrGenreModel(models.Model):
         unique=True,
     )
 
+    def __str__(self) -> str:
+        return self.name[:SLICE_STR_SYMBOLS]
 
-class Category(CategoryOrGenreModel):
-    """Категория (Наследуется от AbstractModel)."""
+
+class Category(ClassificationModel):
+    """Категория (Наследуется от ClassificationModel)."""
     class Meta:
-        default_related_name = 'categories'
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self) -> str:
-        return self.name[:SLICE_STR_SYMBOLS]
 
-
-class Genre(CategoryOrGenreModel):
-    """Жанр (Наследуется от AbstractModel)."""
+class Genre(ClassificationModel):
+    """Жанр (Наследуется от ClassificationModel)."""
     class Meta:
-        default_related_name = 'genres'
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self) -> str:
-        return self.name[:SLICE_STR_SYMBOLS]
 
 
 class Title(models.Model):
@@ -177,8 +168,14 @@ class GenreTitle(models.Model):
         return f'{self.genre}-{self.title}'
 
 
-class ReviewOrCommentModel(models.Model):
+class FeedbackModel(models.Model):
     """Родительский класс для отзывов и комментариев."""
+
+    FEEDBACK = (
+        '{text:.15} автор: {author} '
+        'дата публикации: {pub_date}'
+    )
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -195,13 +192,23 @@ class ReviewOrCommentModel(models.Model):
     class Meta:
         abstract = True
         ordering = ('-pub_date',)
+        default_related_name = '%(class)ss'
 
-    def __str__(self) -> str:
-        return self.text[:SLICE_STR_SYMBOLS]
+    def __str__(self):
+        return self.FEEDBACK.format(
+            text=self.text,
+            author=self.author,
+            pub_date=self.pub_date,
+        )
 
 
-class Review(ReviewOrCommentModel):
-    """Отзывы пользователей (Наследуется от ReviewOrCommentModel)."""
+class Review(FeedbackModel):
+    """Отзывы пользователей (Наследуется от FeedbackModel)."""
+
+    ERROR_SCORE_MIN_MAX = (
+        f'Допустимы значения от {SCORE_MIN} до {SCORE_MAX}'
+    )
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -215,8 +222,7 @@ class Review(ReviewOrCommentModel):
         ],
     )
 
-    class Meta:
-        default_related_name = 'reviews'
+    class Meta(FeedbackModel.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = (
@@ -226,15 +232,14 @@ class Review(ReviewOrCommentModel):
         )
 
 
-class Comment(ReviewOrCommentModel):
-    """Комментарии пользователей (Наследуется от ReviewOrCommentModel)."""
+class Comment(FeedbackModel):
+    """Комментарии пользователей (Наследуется от FeedbackModel)."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         verbose_name='Отзыв'
     )
 
-    class Meta:
-        default_related_name = 'comments'
+    class Meta(FeedbackModel.Meta):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
