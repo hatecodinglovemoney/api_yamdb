@@ -179,8 +179,8 @@ class TitleViewSet(viewsets.ModelViewSet):
         rating=Avg('reviews__score')
     )
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
-    ordering = ('-rating', 'name')
-    ordering_fields = ('rating', 'name', 'year')
+    ordering = ('-rating')
+    ordering_fields = ('rating', 'category', 'name', 'year')
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
