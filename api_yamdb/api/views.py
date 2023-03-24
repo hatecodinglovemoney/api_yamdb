@@ -186,10 +186,10 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitlePostSerializer
 
 
-class AbstractViewSet(mixins.CreateModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class GetPostDestroyViewSet(mixins.CreateModelMixin,
+                            mixins.ListModelMixin,
+                            mixins.DestroyModelMixin,
+                            viewsets.GenericViewSet):
     """
     Абстрактный вьюсет для Жанров и Категорий
     с поддержкой запросв GET LIST, POST, DELETE.
@@ -201,7 +201,7 @@ class AbstractViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(AbstractViewSet):
+class GenreViewSet(GetPostDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -211,7 +211,7 @@ class GenreViewSet(AbstractViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(AbstractViewSet):
+class CategoryViewSet(GetPostDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE

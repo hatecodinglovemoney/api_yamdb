@@ -85,7 +85,7 @@ class User(AbstractUser):
         return self.username
 
 
-class CategoryOrGenreModel(models.Model):
+class NameSlugFieldModel(models.Model):
     """Родительский класс для категорий и жанров."""
     name = models.CharField(
         verbose_name='Название',
@@ -97,27 +97,22 @@ class CategoryOrGenreModel(models.Model):
         unique=True,
     )
 
+    def __str__(self) -> str:
+        return self.name[:SLICE_STR_SYMBOLS]
 
-class Category(CategoryOrGenreModel):
-    """Категория (Наследуется от AbstractModel)."""
+
+class Category(NameSlugFieldModel):
+    """Категория (Наследуется от NameSlugFieldModel)."""
     class Meta:
-        default_related_name = 'categories'
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self) -> str:
-        return self.name[:SLICE_STR_SYMBOLS]
 
-
-class Genre(CategoryOrGenreModel):
-    """Жанр (Наследуется от AbstractModel)."""
+class Genre(NameSlugFieldModel):
+    """Жанр (Наследуется от NameSlugFieldModel)."""
     class Meta:
-        default_related_name = 'genres'
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self) -> str:
-        return self.name[:SLICE_STR_SYMBOLS]
 
 
 class Title(models.Model):
