@@ -17,10 +17,6 @@ ROLE_CHOICES = (
     (ADMIN, 'Администратор'),
 )
 
-ERROR_SCORE_MIN_MAX = (
-    f'Допустимы значения от {SCORE_MIN} до {SCORE_MAX}'
-)
-
 
 class User(AbstractUser):
     """Кастомная модель пользователя."""
@@ -177,8 +173,14 @@ class GenreTitle(models.Model):
         return f'{self.genre}-{self.title}'
 
 
-class ReviewOrCommentModel(models.Model):
+class FeedbackModel(models.Model):
     """Родительский класс для отзывов и комментариев."""
+
+    FEEDBACK = (
+        '{text[:SLICE_STR_SYMBOLS]} автор: {author} '
+        'дата публикации: {pub_date}'
+    )
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -195,13 +197,23 @@ class ReviewOrCommentModel(models.Model):
     class Meta:
         abstract = True
         ordering = ('-pub_date',)
+        default_related_name = '%(class)ss'
 
-    def __str__(self) -> str:
-        return self.text[:SLICE_STR_SYMBOLS]
+    def __str__(self):
+        return self.FEEDBACK.format(
+            text=self.text,
+            author=self.author,
+            pub_date=self.pub_date,
+        )
 
 
-class Review(ReviewOrCommentModel):
-    """Отзывы пользователей (Наследуется от ReviewOrCommentModel)."""
+class Review(FeedbackModel):
+    """Отзывы пользователей (Наследуется от FeedbackModel)."""
+
+    ERROR_SCORE_MIN_MAX = (
+        f'Допустимы значения от {SCORE_MIN} до {SCORE_MAX}'
+    )
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -216,7 +228,6 @@ class Review(ReviewOrCommentModel):
     )
 
     class Meta:
-        default_related_name = 'reviews'
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = (
@@ -226,8 +237,8 @@ class Review(ReviewOrCommentModel):
         )
 
 
-class Comment(ReviewOrCommentModel):
-    """Комментарии пользователей (Наследуется от ReviewOrCommentModel)."""
+class Comment(FeedbackModel):
+    """Комментарии пользователей (Наследуется от FeedbackModel)."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
@@ -235,6 +246,5 @@ class Comment(ReviewOrCommentModel):
     )
 
     class Meta:
-        default_related_name = 'comments'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
