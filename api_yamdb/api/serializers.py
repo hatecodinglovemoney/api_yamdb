@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
 from api_yamdb import settings
 from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.validators import validate_username
 
-from reviews.validators import validate_year, validate_username
+from reviews.validators import validate_year
 
 User = get_user_model()
 
@@ -15,23 +15,14 @@ ERROR_REPEAT_REVIEW = 'Вы уже оставляли отзыв на это п�
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализация данных пользователя."""
-    username = serializers.CharField(
-        required=True,
-        max_length=settings.USERNAME_LENGTH,
-        validators=(validate_username,
-                    UniqueValidator(
-                        queryset=User.objects.values_list(
-                            'username',
-                            flat=True
-                        )
-                    )
-                    )
-    )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
+
+        def validate_username(self, value):
+            return validate_username(value)
 
 
 class SignupSerializer(serializers.Serializer):
@@ -54,7 +45,10 @@ class TokenSerializer(serializers.Serializer):
         max_length=settings.USERNAME_LENGTH,
         validators=(validate_username,)
     )
-    confirmation_code = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(
+        required=True,
+        max_length=settings.CODE_LENGHT
+    )
 
 
 class GenreSerializer(serializers.ModelSerializer):
