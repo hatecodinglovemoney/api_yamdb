@@ -30,10 +30,10 @@ from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
-EMAIL_HEADER = 'Код подтверждения'
-EMAIL_TEXT = 'Ваш код подтверждения: {confirmation_code}'
-USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы'
-CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код'
+EMAIL_HEADER = 'Код подтверждения регистрации на платформе Yamdb.'
+EMAIL_TEXT = 'Ваш одноразовый код подтверждения: {confirmation_code}.'
+USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы.'
+CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код.'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -84,8 +84,8 @@ def signup(request):
     except IntegrityError:
         raise serializers.ValidationError(USER_ERROR)
     confirmation_code = ''.join(sample(
-        settings.CONF_CODE_NUMBERS,
-        settings.CONF_CODE_LENGHT
+        settings.CODE_SYMBOLS,
+        settings.CODE_LENGHT
     ))
     send_mail(
         EMAIL_HEADER,
@@ -109,14 +109,14 @@ def get_token(request):
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(User, username=request.data['username'])
     if (
-        user.confirmation_code != settings.CONF_CODE_DEFAULT
+        user.confirmation_code != settings.CODE_DEFAULT
         and user.confirmation_code == serializer.data['confirmation_code']
     ):
         return Response(
             {'token': str(AccessToken.for_user(user))},
             status=status.HTTP_201_CREATED
         )
-    user.confirmation_code = settings.CONF_CODE_DEFAULT
+    user.confirmation_code = settings.CODE_DEFAULT
     user.save()
     raise serializers.ValidationError(CODE_ERROR)
 
@@ -179,8 +179,8 @@ class TitleViewSet(viewsets.ModelViewSet):
         rating=Avg('reviews__score')
     )
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
-    ordering = ('name', '-rating')
-    ordering_fields = ('name', 'rating', 'year')
+    ordering = ('-rating')
+    ordering_fields = ('rating', 'category', 'name', 'year')
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = PageNumberPagination
@@ -192,10 +192,10 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitlePostSerializer
 
 
-class GetPostDestroyViewSet(mixins.CreateModelMixin,
-                            mixins.ListModelMixin,
-                            mixins.DestroyModelMixin,
-                            viewsets.GenericViewSet):
+class ListCreateDestroyViewSet(mixins.CreateModelMixin,
+                               mixins.ListModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
     """
     Абстрактный вьюсет для Жанров и Категорий
     с поддержкой запросв GET LIST, POST, DELETE.
@@ -207,7 +207,7 @@ class GetPostDestroyViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(GetPostDestroyViewSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -217,7 +217,7 @@ class GenreViewSet(GetPostDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(GetPostDestroyViewSet):
+class CategoryViewSet(ListCreateDestroyViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE

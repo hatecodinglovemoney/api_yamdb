@@ -33,7 +33,7 @@ class User(AbstractUser):
     )
     role = models.CharField(
         verbose_name='Роль',
-        max_length=len(max(list(zip(*ROLE_CHOICES))[0], key=len)),
+        max_length=max(len(role) for role, _ in ROLE_CHOICES),
         choices=ROLE_CHOICES,
         default=USER,
         blank=True
@@ -53,8 +53,8 @@ class User(AbstractUser):
         blank=True
     )
     confirmation_code = models.CharField(
-        max_length=settings.CONF_CODE_LENGHT,
-        default=settings.CONF_CODE_DEFAULT
+        max_length=settings.CODE_LENGHT,
+        default=settings.CODE_DEFAULT
     )
 
     @property
@@ -85,11 +85,11 @@ class ClassificationModel(models.Model):
     """Родительский класс для категорий и жанров."""
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.CATEGORY_NAME_LENGHT,
+        max_length=settings.CLASSIFICATION_NAME_LENGHT,
     )
     slug = models.SlugField(
         verbose_name='slug',
-        max_length=settings.CATEGORY_SLUG_LENGHT,
+        max_length=settings.CLASSIFICATION_SLUG_LENGHT,
         unique=True,
     )
 
@@ -98,14 +98,14 @@ class ClassificationModel(models.Model):
 
 
 class Category(ClassificationModel):
-    """Категория (Наследуется от ClassificationModel)."""
+    """Категория произведения."""
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
 
 class Genre(ClassificationModel):
-    """Жанр (Наследуется от ClassificationModel)."""
+    """Жанр произведения."""
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
@@ -172,7 +172,7 @@ class FeedbackModel(models.Model):
     """Родительский класс для отзывов и комментариев."""
 
     FEEDBACK = (
-        '{text:.15} автор: {author} '
+        '{text:.15} username: {author.username} '
         'дата публикации: {pub_date}'
     )
 
@@ -197,13 +197,13 @@ class FeedbackModel(models.Model):
     def __str__(self):
         return self.FEEDBACK.format(
             text=self.text,
-            author=self.author,
+            author=self.author.username,
             pub_date=self.pub_date,
         )
 
 
 class Review(FeedbackModel):
-    """Отзывы пользователей (Наследуется от FeedbackModel)."""
+    """Отзывы пользователей."""
 
     ERROR_SCORE_MIN_MAX = (
         f'Допустимы значения от {SCORE_MIN} до {SCORE_MAX}'
@@ -233,7 +233,7 @@ class Review(FeedbackModel):
 
 
 class Comment(FeedbackModel):
-    """Комментарии пользователей (Наследуется от FeedbackModel)."""
+    """Комментарии пользователей."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
