@@ -222,7 +222,7 @@ class Review(FeedbackModel):
         ],
     )
 
-    class Meta:
+    class Meta(FeedbackModel.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = (
@@ -240,6 +240,6 @@ class Comment(FeedbackModel):
         verbose_name='Отзыв'
     )
 
-    class Meta:
+    class Meta(FeedbackModel.Meta):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
