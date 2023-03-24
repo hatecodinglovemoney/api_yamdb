@@ -81,7 +81,7 @@ class User(AbstractUser):
         return self.username
 
 
-class NameSlugFieldModel(models.Model):
+class ClassificationModel(models.Model):
     """Родительский класс для категорий и жанров."""
     name = models.CharField(
         verbose_name='Название',
@@ -97,15 +97,15 @@ class NameSlugFieldModel(models.Model):
         return self.name[:SLICE_STR_SYMBOLS]
 
 
-class Category(NameSlugFieldModel):
-    """Категория (Наследуется от NameSlugFieldModel)."""
+class Category(ClassificationModel):
+    """Категория (Наследуется от ClassificationModel)."""
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
 
-class Genre(NameSlugFieldModel):
-    """Жанр (Наследуется от NameSlugFieldModel)."""
+class Genre(ClassificationModel):
+    """Жанр (Наследуется от ClassificationModel)."""
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
