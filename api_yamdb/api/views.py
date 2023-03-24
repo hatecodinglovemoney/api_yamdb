@@ -30,10 +30,10 @@ from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
-EMAIL_HEADER = 'Код подтверждения'
-EMAIL_TEXT = 'Ваш код подтверждения: {confirmation_code}'
-USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы'
-CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код'
+EMAIL_HEADER = 'Код подтверждения регистрации на платформе Yamdb.'
+EMAIL_TEXT = 'Ваш одноразовый код подтверждения: {confirmation_code}.'
+USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы.'
+CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код.'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -84,8 +84,8 @@ def signup(request):
     except IntegrityError:
         raise serializers.ValidationError(USER_ERROR)
     confirmation_code = ''.join(sample(
-        settings.CONF_CODE_NUMBERS,
-        settings.CONF_CODE_LENGHT
+        settings.CODE_SYMBOLS,
+        settings.CODE_LENGHT
     ))
     send_mail(
         EMAIL_HEADER,
@@ -109,14 +109,14 @@ def get_token(request):
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(User, username=request.data['username'])
     if (
-        user.confirmation_code != settings.CONF_CODE_DEFAULT
+        user.confirmation_code != settings.CODE_DEFAULT
         and user.confirmation_code == serializer.data['confirmation_code']
     ):
         return Response(
             {'token': str(AccessToken.for_user(user))},
             status=status.HTTP_201_CREATED
         )
-    user.confirmation_code = settings.CONF_CODE_DEFAULT
+    user.confirmation_code = settings.CODE_DEFAULT
     user.save()
     raise serializers.ValidationError(CODE_ERROR)
 
