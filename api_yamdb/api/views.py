@@ -33,7 +33,7 @@ User = get_user_model()
 EMAIL_HEADER = 'Код подтверждения регистрации на платформе Yamdb.'
 EMAIL_TEXT = 'Ваш одноразовый код подтверждения: {confirmation_code}.'
 USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы.'
-CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код.'
+CODE_ERROR = 'Введен неверный код подтверждения. Запросите новый код.'
 
 
 class UserViewSet(viewsets.ModelViewSet):
