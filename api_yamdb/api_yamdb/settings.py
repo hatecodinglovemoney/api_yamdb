@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from datetime import timedelta
-
+import re
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -151,5 +151,5 @@ CODE_SYMBOLS = '0123456789'
 CLASSIFICATION_NAME_LENGHT = 256
 CLASSIFICATION_SLUG_LENGHT = 50
 TITLE_NAME_LENGHT = 256
-LEGAL_CHARACTERS = r'[\w.@+-]'
+LEGAL_CHARACTERS = re.compile(r'[\w.@+-]')
 FORBIDDEN_NAMES = ('me',)

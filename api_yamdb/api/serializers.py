@@ -21,8 +21,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
 
-        def validate_username(self, value):
-            return validate_username(value)
+    def validate_username(self, value):
+        validate_username(value)
+        return value
 
 
 class SignupSerializer(serializers.Serializer):

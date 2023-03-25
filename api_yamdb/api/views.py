@@ -33,7 +33,7 @@ User = get_user_model()
 EMAIL_HEADER = 'Код подтверждения регистрации на платформе Yamdb.'
 EMAIL_TEXT = 'Ваш одноразовый код подтверждения: {confirmation_code}.'
 USER_ERROR = 'Данные имя пользователя или Email уже зарегистрированы.'
-CODE_ERROR = 'Введен неверный код поджтверждения. Запросите новый код.'
+CODE_ERROR = 'Введен неверный код подтверждения. Запросите новый код.'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -179,7 +179,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         rating=Avg('reviews__score')
     )
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
-    ordering = ('-rating')
+    ordering = ('-rating',)
     ordering_fields = ('rating', 'category', 'name', 'year')
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
@@ -192,7 +192,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitlePostSerializer
 
 
-class ListCreateDestroyViewSet(mixins.CreateModelMixin,
+class CategoryGenreBaseViewSet(mixins.CreateModelMixin,
                                mixins.ListModelMixin,
                                mixins.DestroyModelMixin,
                                viewsets.GenericViewSet):
@@ -207,7 +207,7 @@ class ListCreateDestroyViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(ListCreateDestroyViewSet):
+class GenreViewSet(CategoryGenreBaseViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
@@ -217,7 +217,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(ListCreateDestroyViewSet):
+class CategoryViewSet(CategoryGenreBaseViewSet):
     """
     Вьюсет для обработки эндпоинтов:
     GET, POST, DELETE
