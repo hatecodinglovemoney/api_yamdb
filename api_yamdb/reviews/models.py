@@ -172,7 +172,7 @@ class FeedbackModel(models.Model):
     """Родительский класс для отзывов и комментариев."""
 
     FEEDBACK = (
-        '{text:.15} username: {author.username} '
+        '{text:.15} username: {author} '
         'дата публикации: {pub_date}'
     )
 
